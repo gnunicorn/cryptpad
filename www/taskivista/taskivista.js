@@ -41,12 +41,17 @@ define([
     let isDrawerOpen = false;
     let DATA = {
         todos: {
-            "12-12-12": {
-                "title": "Whatelse"
-            }
+            "1": utils.new_todo("1", "Mit Sari raus gehen"),
+            "2": utils.new_todo("2", "Hausaufgaben machen"),
         }
     };
-    let STATUS = ["open", "progress", "done", "archived"];
+    let STATES = [
+        {state: "open", icon: Icons.SQUARE},
+        {state: "progress", icon: Icons.TRENDING_UP},
+        {state: "stalled", icon: Icons.TRENDING_DOWN},
+        {state: "done", icon: Icons.CHECK_SQUARE},
+        {state: "archived", icon: Icons.ARCHIVE}
+    ];
     let USERS = ["Ben", "Franka", "Milon"];
     let ASSIGNED = ["(not asssigned)"] + USERS;
     let SORT = ["Newest", "Oldest", "Recently updated"];
@@ -72,7 +77,7 @@ define([
             let currentTodos = [];
             for ([id, todo] of Object.entries(DATA.todos)) {
                 currentTodos.push(
-                    m(TodoItem, {todo, style: {
+                    m(TodoItem, {todo, STATES: STATES, style: {
                         "margin-top": "0.5em",
                         "padding": "0.5em 1em",
                         "background": BG_COLOR,
@@ -130,13 +135,19 @@ define([
 
     const FilterAndSort = {
         view: () => {
-            return m(ButtonGroup, { size: "xs" }, [
+            return m(ButtonGroup, { size: "sm" }, [
                 m(CustomSelect, {
-                    options: STATUS,
+                    options: STATES,
                     defaultValue: "Open",
                     onSelect: item => (selectedStatus = item),
+                    itemRender: item =>
+                        m(ListItem, {
+                            iconLeft: item.icon,
+                            label: item.label || item.state,
+                            selected: item === selectedAssigned
+                        }),
                     triggerAttrs: {
-                        iconLeft: Icons.SQUARE,
+                        iconLeft: selectedAssigned ? selectedAssigned.icon : Icons.SQUARE,
                         iconRight: Icons.CHEVRON_DOWN
                     }
                 }),

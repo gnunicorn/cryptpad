@@ -2,9 +2,10 @@ define([], function () {
 
     const Toaster = new window.CUI.Toaster();
 
-    function new_todo() {
+    function new_todo(id, title) {
         return {
-            title: null,
+            id,
+            title,
             assigned: new Map(),
             dueDate: null,
             dueTime: null,
