@@ -1,8 +1,10 @@
 define([
     '/taskivista/components/inline_todo_edit.js',
+    '/taskivista/components/todo_item.js',
     '/taskivista/utils.js',
 ], function (
     InlineToDoEdit,
+    TodoItem,
     utils,
 ) {
     const m = window.m;
@@ -44,7 +46,7 @@ define([
             }
         }
     };
-    let STATUS = ["Open", "Finished", "Archived"];
+    let STATUS = ["open", "progress", "done", "archived"];
     let USERS = ["Ben", "Franka", "Milon"];
     let ASSIGNED = ["(not asssigned)"] + USERS;
     let SORT = ["Newest", "Oldest", "Recently updated"];
@@ -60,30 +62,18 @@ define([
         newToDo = utils.new_todo();
     };
 
-    const ToDoListItem = {
-        view: (v) => {
-            let todo = v.attrs.todo;
-            return m(`.${Classes.ROUNDED}`, {
-                key: todo.id,
-                style: {
-                    "margin-top": "0.5em",
-                    "padding": "0.5em 1em",
-                    "background": BG_COLOR,
-                    "border": BORDER,
-                    }
-                }, [
-                    m(".h4", todo.title)
-            ])
-        }
-
-    }
-
     const ToDoList = {
         view: () => {
             let currentTodos = [];
             for ([id, todo] of Object.entries(DATA.todos)) {
                 currentTodos.push(
-                    m(ToDoListItem, {todo}),
+                    m(TodoItem, {todo, style: {
+                        "margin-top": "0.5em",
+                        "padding": "0.5em 1em",
+                        "background": BG_COLOR,
+                        "border": BORDER,
+                        }
+                    }),
                 );
             };
 
