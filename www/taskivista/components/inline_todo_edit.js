@@ -36,7 +36,10 @@ define([], function() {
                     onclick: vnode.attrs.onfocus,
                 }),
                 value: todo.title,
-                onkeyup: (e) => { todo.title = e.target.value; },
+                onkeyup: (e) => { 
+                    if (e.key === "Escape") { vnode.attrs.onclose(); return }
+                    todo.title = e.target.value;
+                },
                 onfocus: vnode.attrs.onfocus
             });
 
@@ -109,6 +112,7 @@ define([], function() {
                     ]),
                     m(TextArea, {
                         onkeyup: (evt) => {
+                            if (evt.key === "Escape") { vnode.attrs.onclose(); return }
                             todo.description = evt.target.value;
                         },
                         basic: true,
