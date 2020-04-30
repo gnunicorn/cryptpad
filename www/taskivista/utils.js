@@ -2,15 +2,22 @@ define([], function () {
 
     const Toaster = new window.CUI.Toaster();
 
-    function new_todo(id, title) {
+    function new_todo(id, title, dueDate) {
         return {
             id,
             title,
+            dueDate,
             assigned: new Map(),
-            dueDate: null,
             dueTime: null,
             tags: []
         }
+    }
+
+    function example_todos() {
+        return {
+            "1" : new_todo("1", "Mit Sari gehen", "2020-04-28"),
+            "2" : new_todo("2", "Inline Items View", "2020-05-03"),
+        };
     }
 
     function uuidv4() {
@@ -30,6 +37,7 @@ define([], function () {
         Toaster,
         uuidv4,
         generate_next_id,
-        new_todo
+        new_todo,
+        example_todos,
     }
 })

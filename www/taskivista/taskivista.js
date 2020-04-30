@@ -40,10 +40,7 @@ define([
     let isDialogOpen = false;
     let isDrawerOpen = false;
     let DATA = {
-        todos: {
-            "1": utils.new_todo("1", "Mit Sari raus gehen"),
-            "2": utils.new_todo("2", "Hausaufgaben machen"),
-        }
+        todos: utils.example_todos(),
     };
     let STATES = [
         {state: "open", icon: Icons.SQUARE},
@@ -77,11 +74,18 @@ define([
             let currentTodos = [];
             for ([id, todo] of Object.entries(DATA.todos)) {
                 currentTodos.push(
-                    m(TodoItem, {todo, STATES: STATES, style: {
-                        "margin-top": "0.5em",
-                        "padding": "0.5em 1em",
-                        "background": BG_COLOR,
-                        "border": BORDER,
+                    m(TodoItem, {todo,
+                        USERS: USERS,
+                        STATES: STATES,
+                        style: {
+                            "margin-top": "0.5em",
+                            "padding": "0.5em 1em",
+                            "background": BG_COLOR,
+                            "border": BORDER,
+                        },
+                        onchanged: (updated) => {
+                            console.log("saving", updated);
+                            DATA.todos[updated.id] = updated;
                         }
                     }),
                 );
