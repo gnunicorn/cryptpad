@@ -1,5 +1,7 @@
 define([], function () {
 
+    const Toaster = new window.CUI.Toaster();
+
     function new_todo() {
         return {
             title: null,
@@ -24,6 +26,7 @@ define([], function () {
     }
 
     return {
+        Toaster,
         uuidv4,
         generate_next_id,
         new_todo

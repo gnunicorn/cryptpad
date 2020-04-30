@@ -59,6 +59,11 @@ define([
         let todo_id = utils.generate_next_id(DATA.todos);
         item.id = todo_id;
         DATA.todos[todo_id] = item;
+        utils.Toaster.show({
+            message: `ToDo added: ${item.title}`,
+            icon: Icons.CHECK_SQUARE,
+            intent: "positive"
+        });
         newToDo = utils.new_todo();
     };
 
@@ -222,7 +227,8 @@ define([
                                 m('li', 'Eget porttitor lorem'),
                               ])
                         ])
-                    ])
+                    ]),
+                    m(utils.Toaster, {position: "bottom-end"})
                 ]
             )
         }
