@@ -53,11 +53,10 @@ define([
 
     var newToDo = utils.new_todo();
 
-    const new_todo_submitter = (evt) => {
-        evt.preventDefault();
+    const new_todo_submitter = (item) => {
         let todo_id = utils.generate_next_id(DATA.todos);
-        newToDo.id = todo_id;
-        DATA.todos[todo_id] = newToDo;
+        item.id = todo_id;
+        DATA.todos[todo_id] = item;
         newToDo = utils.new_todo();
     };
 
@@ -120,7 +119,7 @@ define([
                     todo: newToDo,
                     expanded: quick_edit_open,
                     onsubmit: new_todo_submitter,
-                    onfocus: () => { console.log("focussing"); quick_edit_open = true },
+                    onfocus: () => { quick_edit_open = true },
                     onclose: () => { quick_edit_open = false },
                     style: {
                         "background": BG_COLOR,
