@@ -1,12 +1,13 @@
-define([], function () {
+define([
+    '/taskivista/components/inline_todo_edit.js',
+    '/taskivista/utils.js',
+], function (
+    InlineToDoEdit,
+    utils,
+) {
     const m = window.m;
     const CUI = window.CUI;
 
-    function uuidv4() {
-        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-        )
-      }
 
     const BG_COLOR = "#fff";
     const BORDER = "solid 1px #c5cdd1";
@@ -49,159 +50,15 @@ define([], function () {
     let SORT = ["Newest", "Oldest", "Recently updated"];
     let selectedStatus, selectedAssigned, selectedSort;
 
-    function generate_next(source) {
-        let  uuid;
-        do {
-            uuid = uuidv4();
-        } while (source[uuid]);
-        return uuid;
-    }
 
-    const new_todo = () => {
-        return {
-            title: null,
-            assigned: new Map(),
-            dueDate: null,
-            dueTime: null,
-            tags: []
-        }
-    };
+    var newToDo = utils.new_todo();
 
-    var expanded = false;
-    var newToDo = new_todo();
-
-    const submitter = (evt) => {
+    const new_todo_submitter = (evt) => {
         evt.preventDefault();
-        let todo_id = generate_next(DATA.todos);
+        let todo_id = utils.generate_next_id(DATA.todos);
         newToDo.id = todo_id;
         DATA.todos[todo_id] = newToDo;
-        newToDo = new_todo();
-    };
-
-    const InlineToDoAdder = {
-        view: (vnode) => {
-            let task_title = m(Input, {
-                placeholder: vnode.attrs.text || "Add a new task",
-                fluid: true,
-                basic: true,
-                size: expanded ? "xl" : "sm",
-                contentRight: expanded ? m(Icon, {
-                    name: Icons.X,
-                    onclick: () => {
-                        expanded = false
-                    },
-                }) : m(Icon, {
-                    name: Icons.PLUS,
-                    onclick: submitter,
-                }),
-                value: newToDo.title,
-                onkeyup: (e) => { newToDo.title = e.target.value; },
-                onfocus: () => { expanded = true }
-            });
-
-            if (!expanded) {
-                return m(Form, {
-                    onsubmit: submitter
-                }, [m(Col, {span: 4, style: {
-                    "background": BG_COLOR,
-                    "padding": "0.5em",
-                    }},
-                    [task_title]
-                )])
-            }
-
-            let currentlyAssigned = "(no one)";
-            if (newToDo.assigned.size === 0) {
-
-            }
-
-            return m(Form, {
-                onsubmit: submitter,
-            }, [m(Col, {span: 12, style: {
-                    "background": BG_COLOR,
-                    "margin-bottom": "1em",
-                    "padding": "0.5em",
-                }},[
-                    task_title,
-                    m("", {style: { "margin": "0.5em" }}, [
-                        m(Input, {
-                            contentLeft: m(Icon, {
-                                name: Icons.CALENDAR,
-                            }),
-                            onkeyup: (evt) => {
-                                newToDo.dueDate = evt.target.value;
-                            },
-                            size: "xs",
-                            type: "date",
-                            basic: true,
-                            value: newToDo.dueDate
-                        }),
-                        m(Input, {
-                            onkeyup: (evt) => {
-                                newToDo.dueTime = evt.target.value;
-                            },
-                            type: "time",
-                            size: "xs",
-                            basic: true,
-                            value: newToDo.dueTime
-                        }),
-
-                        m(SelectList, {
-                            items: USERS,
-                            trigger: m(Button, {
-                                align: 'left',
-                                compact: true,
-                                basic: true,
-                                iconRight: Icons.CHEVRON_DOWN,
-                                sublabel: 'Assigned:',
-                                label: (newToDo.assigned.size === 0) ?
-                                    "(no one)" : 
-                                    Array.from(newToDo.assigned.keys()).join(", "),
-                            }),
-                            itemRender: item =>
-                                m(ListItem, {
-                                    label: item,
-                                    selected: newToDo.assigned.has(item)
-                                }),
-                            itemPredicate: (query, item) =>
-                                item.toLowerCase().includes(query.toLowerCase()),
-                            onSelect: item => {
-                                if (newToDo.assigned.has(item)) {
-                                    newToDo.assigned.delete(item);
-                                } else {
-                                    newToDo.assigned.set(item, null)
-                                }
-                            }
-                        })
-                    ]),
-                    m(TextArea, {
-                        onkeyup: (evt) => {
-                            newToDo.description = evt.target.value;
-                        },
-                        basic: true,
-                        size: "sm",
-                        fluid: true,
-                        value: newToDo.description,
-                    }),
-                    m(TagInput, {
-                        style: {
-                            "margin": "1em 0 0 1em"
-                        },
-                        basic: true,
-                        contentLeft: m(Icon, { name: Icons.TAG }),
-                        size: "sm",
-                        tags: newToDo.tags.map(tag => m(Tag, {
-                            label: tag,
-                            onRemove: () => {
-                                newToDo.tags.indexOf(tag);
-                                newToDo.tags.splice(index, 1);
-                            }
-                        })),
-                        onAdd: (item) => newToDo.tags.push(item)
-                    }),
-                ])
-            ]);
-        }
+        newToDo = utils.new_todo();
     };
 
     const ToDoListItem = {
@@ -245,7 +102,6 @@ define([], function () {
                         content: m(InlineToDoAdder, { size: "md", text: "or add a new task" })
                     })
                 ]);
-
             }
             
             return m("", {style: { "margin-top": "1em" } }, [
@@ -254,10 +110,24 @@ define([], function () {
         }
     }
 
+    var quick_edit_open = false;
+
     const ToDos = {
         view: () => {
             return m("", [
-                m(InlineToDoAdder),
+                m(InlineToDoEdit, {
+                    users: USERS,
+                    todo: newToDo,
+                    expanded: quick_edit_open,
+                    onsubmit: new_todo_submitter,
+                    onfocus: () => { console.log("focussing"); quick_edit_open = true },
+                    onclose: () => { quick_edit_open = false },
+                    style: {
+                        "background": BG_COLOR,
+                        "padding": quick_edit_open ? "0.5em" : "0.5em 0",
+                        "margin-bottom" : "1em"
+                    }
+                }),
                 m("", {style: "text-align: right"}, [m(FilterAndSort)] ),
                 m("", [m(ToDoList)]),
             ]);
