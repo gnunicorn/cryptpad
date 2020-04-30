@@ -23,13 +23,15 @@ define([
     )
 {
     var APP = window.APP = {};
+    let root = document.getElementById("app");
     const m = window.m;
 
     var common;
     var sFrameChan;
 
     UI.removeLoadingScreen();
-    m.mount(document.getElementById("app"), Taskivista);
+    root.style = "background: url(/taskivista/background.webp) no-repeat;background-size: cover;";
+    m.mount(root, Taskivista);
 
     nThen(function (waitFor) {
         // $(waitFor(UI.addLoadingScreen));
