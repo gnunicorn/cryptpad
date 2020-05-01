@@ -2,6 +2,7 @@ define([
     '/taskivista/components/inline_todo_edit.js',
     '/taskivista/components/todo_item.js',
     '/taskivista/utils.js',
+    'css!/taskivista/taskivista.css',
 ], function (
     InlineToDoEdit,
     TodoItem,
