@@ -1,141 +1,101 @@
+
+// This is the initialization loading the CryptPad libraries
 define([
     'jquery',
-    '/bower_components/chainpad-crypto/crypto.js',
-    '/bower_components/chainpad-listmap/chainpad-listmap.js',
-    '/common/toolbar3.js',
     '/bower_components/nthen/index.js',
     '/common/sframe-common.js',
-    '/common/common-interface.js',
+    '/common/sframe-app-framework.js',
+    '/common/common-util.js',
     '/common/common-hash.js',
-    '/taskivista/taskivista.js',
-
-    'css!/taskivista/construct-ui.css',
+    '/common/modes.js',
+    '/customize/messages.js',
+    'less!/taskivista/app/taskivista.less',
+    '/taskivista/app/taskivista.js',
+    /* Here you can add your own javascript or css to load */
 ], function (
     $,
-    Crypto,
-    Listmap,
-    Toolbar,
     nThen,
     SFCommon,
-    UI,
+    Framework,
+    Util,
     Hash,
+    Modes,
+    Messages,
+    _ui,
     Taskivista,
-    )
-{
-    var APP = window.APP = {};
-    let root = document.getElementById("app");
-    const m = window.m;
+) {
+    /* Here you can initialize your own functions and objects */
 
-    var common;
-    var sFrameChan;
 
-    UI.removeLoadingScreen();
-    root.style = "background: url(/taskivista/background.webp) no-repeat;background-size: cover;";
-    m.mount(root, Taskivista);
+    // This is the main initialization loop
+    var andThen2 = function (framework) {
+        console.log("framework", framework);
+        // Here you can load the objects or call the functions you have defined
 
-    nThen(function (waitFor) {
-        // $(waitFor(UI.addLoadingScreen));
-        console.log("loading");
-        SFCommon.create(waitFor(function (c) { APP.common = common = c; }));
-    }).nThen(function ( /* waitFor */) {
-        console.log("done loading");
-        var $bar = $('.cp-toolbar-container');
+        // // This is the function from which you will receive updates from CryptPad
+        // // In this example we update the textarea with the data received
+        framework.onContentUpdate(function (newContent) {
+            console.log("Content should be updated to " + newContent);
+            // $("#cp-ap?p-miniapp-content").val(newContent.content);
+        });
 
-        var displayed = ['useradmin', 'newpad', 'limit', 'pageTitle', 'notifications'];
-        var configTb = {
-            displayed: displayed,
-            sfCommon: common,
-            $container: $bar,
-            pageTitle: Messages.todo_title,
-            metadataMgr: common.getMetadataMgr(),
-        };
-        APP.toolbar = Toolbar.create(configTb);
-        APP.toolbar.$rightside.hide();
+        // // This is the function called to get the current state of the data in your app
+        // // Here we read the data from the textarea and put it in a javascript object
+        framework.setContentGetter(function () {
+            var content = $("#cp-app-miniapp-content").val();
+            console.log("Content current value is " + content);
+            return {
+                content: content
+            };
+        });
 
-        console.log("mounted");
-    });
-    //     sFrameChan = common.getSframeChannel();
-    //     sFrameChan.onReady(waitFor());
-    // }).nThen(function (/*waitFor*/) {
+        // This is called when the system is ready to start editing
+        // We focus the textarea
+        framework.onReady(function (newPad) {
 
-    //     UI.removeLoadingScreen();
-    //     m.mount(document.getElementById("app"), Taskivista);
-    //     console.log("mounted")
+            const root = document.getElementById("app");
+            const m = window.m;
+        
+            console.log("ready", newPad);
+            root.style = "background: url(/taskivista/static/background.webp) no-repeat;background-size: cover;";
+            m.mount(root, Taskivista);
+        });
 
-    //     var removeTips = function () {
-    //         UI.clearTooltips();
-    //     };
+        // // We add some code to our application to be informed of changes from the textarea
+        // var oldVal = "";
+        // $("#cp-app-miniapp-content").on("change keyup paste", function () {
+        //     var currentVal = $(this).val();
+        //     if (currentVal === oldVal) {
+        //         return; //check to prevent multiple simultaneous triggers
+        //     }
+        //     oldVal = currentVal;
+        //     // action to be performed on textarea changed
+        //     console.log("Content changed");
+        //     // we call back the cryptpad framework to inform data has changes
+        //     framework.localChange();
+        // });
 
-    //     var onReady = function () {
+        // starting the CryptPad framework
+        framework.start();
+    };
 
-    //         var display = APP.display = function () {
-    //             $list.empty();
-    //             removeTips();
-    //             APP.lm.proxy.order.forEach(function (el) {
-    //                 addTaskUI(el);
-    //             });
-    //             //scrollTo('300px');
-    //         };
+    // This is the main starting loop
+    var main = function () {
+        var framework;
 
-    //         var addTask = function () {
-    //             var $input = $('#cp-app-todo-newtodo');
-    //             // if the input is empty after removing leading and trailing spaces
-    //             // don't create a new entry
-    //             if (!$input.val().trim()) { return; }
+        nThen(function (waitFor) {
+            console.log("creating");
 
-    //             var obj = {
-    //                 "state": 0,
-    //                 "task": $input.val(),
-    //                 "ctime": +new Date(),
-    //                 "mtime": +new Date()
-    //             };
-
-    //             var id = Hash.createChannelId();
-    //             todo.add(id, obj);
-
-    //             $input.val("");
-    //             addTaskUI(id, true);
-    //             //display();
-    //         };
-
-    //         var $formSubmit = $('.cp-app-todo-create-form button').on('click', addTask);
-    //         $('#cp-app-todo-newtodo').on('keypress', function (e) {
-    //             switch (e.which) {
-    //                 case 13:
-    //                     $formSubmit.click();
-    //                     break;
-    //                 default:
-    //                     //console.log(e.which);
-    //             }
-    //         }).focus();
-
-    //         var editTask = function () {
-
-    //         };
-    //         editTask = editTask;
-
-    //         display();
-    //         UI.removeLoadingScreen();
-    //     };
-
-    //     var onInit = function () {
-    //         $body.on('dragover', function (e) { e.preventDefault(); });
-    //         $body.on('drop', function (e) { e.preventDefault(); });
-
-    //     };
-    //     var createTodo = function() {
-    //         var listmapConfig = {
-    //             data: {},
-    //             common: common,
-    //             userName: 'todo',
-    //             logLevel: 1
-    //         };
-
-    //         var lm = APP.lm = Listmap.create(listmapConfig);
-
-    //         lm.proxy.on('create', onInit)
-    //                 .on('ready', onReady);
-    //     };
-    //     createTodo();
-    // });
+            // Framework initialization
+            Framework.create({
+                toolbarContainer: '#cme_toolbox',
+                contentContainer: '#cp-app-editor'
+            }, waitFor(function (fw) {
+                console.log("done creating -----")
+                framework = fw;
+                andThen2(framework);
+            }));
+        });
+    };
+    main();
 });

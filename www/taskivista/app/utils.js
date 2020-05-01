@@ -16,7 +16,7 @@ define([], function () {
     function example_todos() {
         return {
             "1" : new_todo("1", "Mit Sari gehen", "2020-04-28"),
-            "2" : new_todo("2", "Inline Items View", "2020-05-03"),
+            "2" : new_todo("2", "Inline Items View", "2020"),
         };
     }
 

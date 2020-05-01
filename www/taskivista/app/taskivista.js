@@ -1,8 +1,8 @@
 define([
-    '/taskivista/components/inline_todo_edit.js',
-    '/taskivista/components/todo_item.js',
-    '/taskivista/utils.js',
-    'css!/taskivista/taskivista.css',
+    '/taskivista/app/components/inline_todo_edit.js',
+    '/taskivista/app/components/todo_item.js',
+    '/taskivista/app/utils.js',
+    // 'css!/taskivista/vendor/construct-ui.css',
 ], function (
     InlineToDoEdit,
     TodoItem,
@@ -185,15 +185,10 @@ define([
         }
     };
 
-    console.log(Classes);
-
     const Dashboard = {
         view: () => {
-            return m(Grid, {align: "top", justify: "space-between", gutter: "xs",
-                    style: {
-                        margin: "1em auto",
-                        "max-width": "1280px",
-                    },
+            return m(Grid, {
+                align: "top", justify: "space-between", gutter: "xs", class: "taskivista"
                 }, [
                     
                     m(Col, {span: 9}, [
