@@ -47,7 +47,6 @@ define([
     }
 
     function formate_day_diff(counts) {
-        return counts
         if (window.Intl && window.Intl.RelativeTimeFormat) {
             return new Intl.RelativeTimeFormat("de", {"numeric": "auto"}).format(counts, "days")
         }
