@@ -1,4 +1,5 @@
 define([], function () {
+    const Icons = window.CUI.Icons;
 
     const Toaster = new window.CUI.Toaster();
     const _MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -29,6 +30,13 @@ define([], function () {
             },
             SETTINGS: {
                 background_image: "/taskivista/static/background.webp",
+                STATES: [
+                    {state: "open", icon: Icons.SQUARE},
+                    {state: "progress", icon: Icons.TRENDING_UP},
+                    {state: "stalled", icon: Icons.TRENDING_DOWN},
+                    {state: "done", icon: Icons.CHECK_SQUARE},
+                    {state: "archived", icon: Icons.ARCHIVE}
+                ],
             }
         };
     }

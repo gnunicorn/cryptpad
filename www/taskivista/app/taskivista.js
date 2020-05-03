@@ -2,7 +2,6 @@ define([
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/todo_item.js',
     '/taskivista/app/utils.js',
-    // 'css!/taskivista/vendor/construct-ui.css',
 ], function (
     InlineToDoEdit,
     TodoItem,
@@ -11,10 +10,8 @@ define([
     const m = window.m;
     const CUI = window.CUI;
 
-
     const BG_COLOR = "#fff";
     const BORDER = "solid 1px #c5cdd1";
-      
 
     const {
         Button,
@@ -24,6 +21,9 @@ define([
         Drawer,
         Input,
         Dialog,
+        PopoverMenu,
+        MenuItem,
+        MenuDivider,
         SelectList,
         ListItem,
         Grid,
@@ -36,20 +36,13 @@ define([
         TagInput,
         Tag,
         TextArea,
-      } = CUI;
+    } = CUI;
 
     let isDialogOpen = false;
     let isDrawerOpen = false;
     let DATA;
     let DATA_UPDATE_CB;
 
-    let STATES = [
-        {state: "open", icon: Icons.SQUARE},
-        {state: "progress", icon: Icons.TRENDING_UP},
-        {state: "stalled", icon: Icons.TRENDING_DOWN},
-        {state: "done", icon: Icons.CHECK_SQUARE},
-        {state: "archived", icon: Icons.ARCHIVE}
-    ];
     let USERS = ["Ben", "Franka", "Milon"];
     let ASSIGNED = ["(not asssigned)"] + USERS;
     let SORT = ["Newest", "Oldest", "Recently updated"];
@@ -81,7 +74,7 @@ define([
                     currentTodos.push(
                         m(TodoItem, {todo,
                             USERS: USERS,
-                            STATES: STATES,
+                            STATES: DATA.SETTINGS.STATES,
                             style: {
                                 "margin-top": "0.5em",
                                 "padding": "0.5em 1em",
@@ -154,17 +147,17 @@ define([
         view: () => {
             return m(ButtonGroup, { size: "sm" }, [
                 m(CustomSelect, {
-                    options: STATES,
-                    defaultValue: "Open",
+                    options: DATA.SETTINGS.STATES,
+                    defaultValue: DATA.SETTINGS.STATES[0],
                     onSelect: item => (selectedStatus = item),
                     itemRender: item =>
                         m(ListItem, {
                             iconLeft: item.icon,
                             label: item.label || item.state,
-                            selected: item === selectedAssigned
+                            selected: item === selectedStatus
                         }),
                     triggerAttrs: {
-                        iconLeft: selectedAssigned ? selectedAssigned.icon : Icons.SQUARE,
+                        iconLeft: selectedStatus ? selectedStatus.icon : Icons.SQUARE,
                         iconRight: Icons.CHEVRON_DOWN
                     }
                 }),
@@ -212,8 +205,39 @@ define([
                         }}, [
                             m(Col, {span: 6}, [m("h1", "Taskivista")]),
                             m(Col, {span: 6, style: "text-align: right"}, [
-                                    m(Icon, { name: Icons.SETTINGS }),
-                            ]),
+                                m(PopoverMenu, {
+                                    closeOnContentClick: true,
+                                    content: [
+                            
+                                      m(MenuItem, {
+                                        iconLeft: Icons.EDIT_2,
+                                        label: 'Edit'
+                                      }),
+                            
+                                      m(MenuItem, {
+                                        iconLeft: Icons.SETTINGS,
+                                        label: 'Settings'
+                                      }),
+                            
+                                      m(MenuDivider),
+
+                                      m(MenuItem, {
+                                        iconLeft: Icons.CLOUD_LIGHTNING,
+                                        label: 'Reset Data',
+                                        intent: 'negative',
+                                        onclick: () => {
+                                            DATA = utils.generate_default();
+                                            if (DATA_UPDATE_CB) { 
+                                                DATA_UPDATE_CB()
+                                            }
+                                        }
+                                        
+                                      }),
+                                    ],
+                                    menuAttrs: { size: this.size },
+                                    trigger:  m(Icon, { name: Icons.SETTINGS })
+                                  })
+                                ])
                         ]),
                         m("", { style: {
                             "margin": "1em 1em 0 0",
