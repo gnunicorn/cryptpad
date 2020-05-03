@@ -40,9 +40,9 @@ define([
 
     let isDialogOpen = false;
     let isDrawerOpen = false;
-    let DATA = {
-        todos: utils.example_todos(),
-    };
+    let DATA;
+    let DATA_UPDATE_CB;
+
     let STATES = [
         {state: "open", icon: Icons.SQUARE},
         {state: "progress", icon: Icons.TRENDING_UP},
@@ -62,6 +62,9 @@ define([
         let todo_id = utils.generate_next_id(DATA.todos);
         item.id = todo_id;
         DATA.todos[todo_id] = item;
+        if(DATA_UPDATE_CB) {
+            DATA_UPDATE_CB();
+        }
         utils.Toaster.show({
             message: `ToDo added: ${item.title}`,
             icon: Icons.CHECK_SQUARE,
@@ -73,24 +76,29 @@ define([
     const ToDoList = {
         view: () => {
             let currentTodos = [];
-            for ([id, todo] of Object.entries(DATA.todos)) {
-                currentTodos.push(
-                    m(TodoItem, {todo,
-                        USERS: USERS,
-                        STATES: STATES,
-                        style: {
-                            "margin-top": "0.5em",
-                            "padding": "0.5em 1em",
-                            "background": BG_COLOR,
-                            "border": BORDER,
-                        },
-                        onchanged: (updated) => {
-                            console.log("saving", updated);
-                            DATA.todos[updated.id] = updated;
-                        }
-                    }),
-                );
-            };
+            if (DATA && DATA.todos) {
+                for ([id, todo] of Object.entries(DATA.todos)) {
+                    currentTodos.push(
+                        m(TodoItem, {todo,
+                            USERS: USERS,
+                            STATES: STATES,
+                            style: {
+                                "margin-top": "0.5em",
+                                "padding": "0.5em 1em",
+                                "background": BG_COLOR,
+                                "border": BORDER,
+                            },
+                            onchanged: (updated) => {
+                                console.log("saving", updated);
+                                DATA.todos[updated.id] = updated;
+                                if(DATA_UPDATE_CB) {
+                                    DATA_UPDATE_CB();
+                                }
+                            }
+                        }),
+                    );
+                };
+            }
 
             if (currentTodos.length == 0) {
                 return m("", {style: {
@@ -103,7 +111,11 @@ define([
                         fill: false,
                         icon: Icons.CHECK_SQUARE,
                         header: "Seems like you are all done. No Items found.",
-                        content: m(InlineToDoAdder, { size: "md", text: "or add a new task" })
+                        content: m(InlineToDoEdit, { 
+                            users: USERS,
+                            todo: newToDo,
+                            size: "md", text: "or add a new task" }
+                        )
                     })
                 ]);
             }
@@ -245,79 +257,48 @@ define([
         }
     };
 
-    return Dashboard;
+    const Root = {
+        view: (vnode) => {
+            let style = {};
+            if (DATA && DATA.SETTING && DATA.SETTINGS.background_image) {
+                style = {
+                    "background": `url(${DATA.SETTINGS.background_image}) center center no-repeat`,
+                    "background-size": "cover"
+                }
+            }
+            return m("", { style }, vnode.children)
+        }
+    }
 
-    // const Taskivista = {
-    //     view: () => {
-    //         return m("[style=padding:30px]", [
-    //         m(ButtonGroup, { size: "xs" }, [
-    //             m(Button, {Newest
-    //             iconLeft: Icons.CALENDAR,
-    //             label: "Open Dialog",
-    //             onclick: () => (isDialogOpen = true)
-    //             }),
-
-    //             m(Button, {
-    //             iconLeft: Icons.SETTINGS,
-    //             label: "Open Drawer",
-    //             onclick: () => (isDrawerOpen = true)
-    //             }),
-
-    //             m(SelectList, {
-    //             items: ["Blue", "Purple", "Red", "Green"],
-    //             itemRender: item =>
-    //                 m(ListItem, {
-    //                 label: item,
-    //                 selected: item === selectedColor,
-    //                 contentRight: m("", {
-    //                     style: {
-    //                     height: "10px",
-    //                     width: "10px",
-    //                     borderRadius: "50px",
-    //                     background: item
-    //                     }
-    //                 })
-    //                 }),
-    //             itemPredicate: (query, item) =>
-    //                 item.toLowerCase().includes(query.toLowerCase()),
-    //             onSelect: item => (selectedColor = item),
-    //             trigger: m(Button, {
-    //                 iconLeft: Icons.DROPLET,
-    //                 label: "Choose color",
-    //                 iconRight: Icons.CHEVRON_DOWN
-    //             })
-    //             }),
-
-    //             m(CustomSelect, {
-    //             options: ["Jane", "John", "Janet"],
-    //             defaultValue: "Jane",
-    //             triggerAttrs: {
-    //                 iconLeft: Icons.USERS
-    //             }
-    //             })
-    //         ]),
-
-    //         m(Dialog, {
-    //             isOpen: isDialogOpen,
-    //             onClose: () => (isDialogOpen = false),
-    //             title: "Dialog",
-    //             content: "Testing",
-    //             footer: [
-    //             m(Button, {
-    //                 label: "Close",
-    //                 onclick: () => (isDialogOpen = false)
-    //             })
-    //             ]
-    //         }),
-
-    //         m(Drawer, {
-    //             isOpen: isDrawerOpen,
-    //             content: "Content",
-    //             position: "left",
-    //             onClose: () => (isDrawerOpen = false)
-    //         })
-    //         ]);
-    //     }
-    // };
-    // return Taskivista
+    return  {
+        setData: (d) => {
+            if (d.version) {
+                console.log("Data incoming", d);
+                DATA = d;
+            } else {
+                DATA = utils.generate_default();
+                if(DATA_UPDATE_CB) {
+                    DATA_UPDATE_CB();
+                }
+            }
+            m.redraw();
+        },
+        getData: () => {
+            return DATA
+        },
+        setRoutePrefix: (p) => {
+            m.route.prefix = p;
+        },
+        onDataUpdate: (cb) => {
+            DATA_UPDATE_CB = cb;
+        },
+        setDefaultData: () => {
+            DATA = utils.generate_default();
+        },
+        initAt: (elem) => {
+            m.route(elem, "/", {
+                "/": { view: () => {return m(Root, m(Dashboard))} }
+            });
+        }
+    }
 });

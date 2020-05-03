@@ -1,7 +1,9 @@
 define([
     '/taskivista/app/components/inline_todo_edit.js',
+    '/taskivista/app/utils.js',
 ], function(
     InlineTodoEdit,
+    utils,
 ) {
     'use strict';
     const m = window.m;
@@ -35,33 +37,6 @@ define([
         return Icons.TRENDING_UP
     }
 
-    function diff_date(d) {
-        const splits = d.split("-").map((x) => parseInt(x, 10));
-        const today = new Date();
-        const _MS_PER_DAY = 1000 * 60 * 60 * 24;
-        // Discard the time and time-zone information.
-        const utc1 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-        const utc2 = Date.UTC(splits[0], splits[1] - 1, splits[2]);
-
-        return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-    }
-
-    function formate_day_diff(counts) {
-        if (window.Intl && window.Intl.RelativeTimeFormat) {
-            return new Intl.RelativeTimeFormat("de", {"numeric": "auto"}).format(counts, "days")
-        }
-        if (counts == 0) {
-            return "Today"
-        } else if (counts === 1) {
-            return "Tomorrow"
-        } else if (counts === -1) {
-            return "Yesterday"
-        } else if (counts < -1) {
-            return `${counts} days ago`
-        } else {
-            return `in ${counts} days`
-        }
-    }
 
     return function todo_item() {
         var edit_mode = false;
@@ -110,8 +85,8 @@ define([
                     details.push(m(Icon, {name: Icons.TEXT_FILE}))
                 }
                 if (todo.dueDate) {
-                    let dayDiff = diff_date(todo.dueDate);
-                    let formatted = formate_day_diff(dayDiff);
+                    let dayDiff = utils.diff_date(todo.dueDate);
+                    let formatted = utils.formate_day_diff(dayDiff);
                     if (dayDiff === 0) {
                         details.push(m(`.${Classes.CUI_CONTROL}.${Classes.POSITIVE}`,[
                             m(Icon, {name: Icons.CLOCK}),

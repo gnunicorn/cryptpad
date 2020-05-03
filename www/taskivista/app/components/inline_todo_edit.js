@@ -94,21 +94,21 @@ define([], function() {
                                     iconRight: Icons.CHEVRON_DOWN,
                                     sublabel: 'Assigned:',
                                     label: (todo.assigned.size === 0) ?
-                                        "(no one)" : 
-                                        Array.from(todo.assigned.keys()).join(", "),
+                                        "(no one)" : todo.assigned.join(", "),
                                 }),
                                 itemRender: item =>
                                     m(ListItem, {
                                         label: item,
-                                        selected: todo.assigned.has(item)
+                                        selected: todo.assigned.indexOf(item) !== -1
                                     }),
                                 itemPredicate: (query, item) =>
                                     item.toLowerCase().includes(query.toLowerCase()),
                                 onSelect: item => {
-                                    if (todo.assigned.has(item)) {
-                                        todo.assigned.delete(item);
+                                    let idx = todo.assigned.indexOf(item);
+                                    if (idx === -1) {
+                                        todo.assigned.push(item);
                                     } else {
-                                        todo.assigned.set(item, null)
+                                        todo.assigned.splice(idx, 1)
                                     }
                                 }
                             })

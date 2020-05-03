@@ -35,45 +35,40 @@ define([
         // // This is the function from which you will receive updates from CryptPad
         // // In this example we update the textarea with the data received
         framework.onContentUpdate(function (newContent) {
-            console.log("Content should be updated to " + newContent);
-            // $("#cp-ap?p-miniapp-content").val(newContent.content);
+            console.log("Content should be updated to ", newContent);
+            Taskivista.setData(newContent);
         });
 
         // // This is the function called to get the current state of the data in your app
         // // Here we read the data from the textarea and put it in a javascript object
         framework.setContentGetter(function () {
-            var content = $("#cp-app-miniapp-content").val();
-            console.log("Content current value is " + content);
-            return {
-                content: content
-            };
+            var content = Taskivista.getData();
+            console.log("Content current value is ", content);
+            return content;
+        });
+
+        framework.setFileImporter({}, function (content /*, file */) {
+            var parsed;
+            try { parsed = JSON.parse(content); }
+            catch (e) { return void console.error(e); }
+            return parsed;
+        });
+
+        framework.setFileExporter('.json', function () {
+            return new Blob([JSON.stringify(Taskivista.getData(), 0, 2)], {
+                type: 'application/json',
+            });
+        });
+
+        framework.onDefaultContentNeeded(function () {
+            Taskivista.setDefaultData();
         });
 
         // This is called when the system is ready to start editing
-        // We focus the textarea
         framework.onReady(function (newPad) {
-
-            const root = document.getElementById("app");
-            const m = window.m;
-        
-            console.log("ready", newPad);
-            root.style = "background: url(/taskivista/static/background.webp) no-repeat;background-size: cover;";
-            m.mount(root, Taskivista);
+            Taskivista.onDataUpdate(() => framework.localChange());
+            Taskivista.initAt(document.getElementById("app"));
         });
-
-        // // We add some code to our application to be informed of changes from the textarea
-        // var oldVal = "";
-        // $("#cp-app-miniapp-content").on("change keyup paste", function () {
-        //     var currentVal = $(this).val();
-        //     if (currentVal === oldVal) {
-        //         return; //check to prevent multiple simultaneous triggers
-        //     }
-        //     oldVal = currentVal;
-        //     // action to be performed on textarea changed
-        //     console.log("Content changed");
-        //     // we call back the cryptpad framework to inform data has changes
-        //     framework.localChange();
-        // });
 
         // starting the CryptPad framework
         framework.start();
