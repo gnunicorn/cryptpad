@@ -70,7 +70,6 @@ define([
                                     name: Icons.CALENDAR,
                                 }),
                                 onchange: (evt) => {
-                                    console.log(evt.target.value);
                                     todo.dueDate = evt.target.value;
                                 },
                                 size: "xs",
@@ -80,7 +79,6 @@ define([
                             }),
                             m(Input, {
                                 onchange: (evt) => {
-                                    console.log(evt.target.value);
                                     todo.dueTime = evt.target.value;
                                 },
                                 type: "time",

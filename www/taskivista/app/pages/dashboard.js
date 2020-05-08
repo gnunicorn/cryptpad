@@ -13,6 +13,7 @@ define([
     const m = window.m;
     const {
         Icons,
+        Icon,
         Grid,
         Card,
         Col,
@@ -21,34 +22,22 @@ define([
     } = window.CUI;
 
     function Dasbhboard(vn) {
-        const {
-            USERS,
-            STATES,
-            onUpdated,
-            BG_COLOR,
-            BORDER
-        } = vn.attrs;
-
-        const { todos }  = vn.attrs.DATA;
 
         let newToDo = utils.new_todo();
         let quick_edit_open = false;
 
-        const new_todo_submitter = (item) => {
-            let todo_id = utils.generate_next_id(todos);
-            item.id = todo_id;
-            onUpdated(item);
-            utils.Toaster.show({
-                message: `ToDo added: ${item.title}`,
-                icon: Icons.CHECK_SQUARE,
-                intent: "positive"
-            });
-            newToDo = utils.new_todo();
-        };
-
-
         const ToDoList = {
-            view: () => {
+            view: (vn) => {
+                const {
+                    USERS,
+                    STATES,
+                    onDataUpdate,
+                    BG_COLOR,
+                    BORDER,
+                    DATA,
+                } = vn.attrs;
+                const { todos } = DATA;
+
                 let currentTodos = [];
                 if (todos) {
                     for (let [id, todo] of Object.entries(todos)) {
@@ -61,9 +50,10 @@ define([
                                     "border": BORDER,
                                 },
                                 onchanged: (updated) => {
-                                    onUpdated(updated);
+                                    todos[updated.id] = updated;
+                                    onDataUpdate(updated);
                                     utils.Toaster.show({
-                                        message: `ToDo ${item.title} updaetd`,
+                                        message: `ToDo ${updated.title} updated`,
                                         icon: Icons.CHECK_SQUARE,
                                         intent: "positive"
                                     });
@@ -100,13 +90,31 @@ define([
         }
 
         const ToDos = {
-            view: () => {
+            view: (vn) => {
+                const {
+                    USERS,
+                    STATES,
+                    BG_COLOR,
+                    DATA,
+                    onDataUpdate,
+                } = vn.attrs;
                 return m("", [
                     m(InlineToDoEdit, {
                         users: USERS,
                         todo: newToDo,
                         expanded: quick_edit_open,
-                        onsubmit: new_todo_submitter,
+                        onsubmit: (item) => {
+                            let todo_id = utils.generate_next_id(DATA.todos);
+                            item.id = todo_id;
+                            DATA.todos[item.id] = item;
+                            onDataUpdate(item);
+                            utils.Toaster.show({
+                                message: `ToDo added: ${item.title}`,
+                                icon: Icons.CHECK_SQUARE,
+                                intent: "positive"
+                            });
+                            newToDo = utils.new_todo();
+                        },
                         onfocus: () => { quick_edit_open = true },
                         onclose: () => { quick_edit_open = false },
                         style: {
@@ -115,7 +123,7 @@ define([
                             "margin-bottom" : "1em"
                         }
                     }),
-                    m("", {style: "text-align: right"},
+                    m("", {style: "text-align: right", "background": BG_COLOR,},
                         [m(FilterAndSort, {
                             onchange: (sel) => {
                                 console.log("new selection:", sel)
@@ -124,14 +132,18 @@ define([
                             assignees: USERS,
                             sort: ["Due", "Newest", "Last updated", "Oldest"]
                         })]),
-                    m("", [m(ToDoList)]),
+                    m("", [m(ToDoList, vn.attrs)]),
                 ]);
             }
         };
 
 
         return {
-            view: () => {
+            view: (vn) => {
+                const {
+                    BG_COLOR,
+                    BORDER
+                } = vn.attrs;
                 return m(Grid, {
                     align: "top", justify: "space-between", gutter: "xs", class: "taskivista"
                     }, [
@@ -182,7 +194,7 @@ define([
                             m("", { style: {
                                 "margin": "1em 1em 0 0",
                             }}, [
-                                m(ToDos),
+                                m(ToDos, vn.attrs),
                             ]),
                         ]),
                         m(Col, {span: 3}, [
@@ -196,16 +208,20 @@ define([
                                 ])
                             ]),
                             m(Card, {"style": "margin: 1em 0"}, [
-                                m("h3", "Meetings"),
+                                m("h3", [
+                                    "Meetings",
+                                    m(m.route.Link,
+                                        {href: "/new_meeting", options: {replace: true}},
+                                        m(Icon, { name: Icons.PLUS_CIRCLE } )
+                                    ),
+                                ]),
                                 m('ul', [
                                     m('li', 'Lorem ipsum dolor sit amet'),
                                     m('li', 'Consectetur adipiscing elit'),
                                     m('li', 'Faucibus porta lacus fringilla vel'),
                                     m('li', 'Eget porttitor lorem'),
                                 ]),
-                                m(m.route.Link,
-                                    {href: "/new_meeting", options: {replace: true}},
-                                "Add")
+                                
                             ]),
 
                             m(Card, {}, [

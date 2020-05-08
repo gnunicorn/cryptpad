@@ -1,4 +1,9 @@
-define([], function() {
+define([
+    '/taskivista/app/utils.js',
+
+], function(
+    utils,
+) {
     'use strict';
     const m = window.m;
     const {
@@ -25,19 +30,20 @@ define([], function() {
                         iconRight: Icons.CHEVRON_DOWN,
                         sublabel: vnode.attrs.sublabel || 'Assigned:',
                         label: (selected.size === 0) ?
-                            (vnode.attrs.empty_label || "(no one)") : selected.join(", "),
+                            (vnode.attrs.empty_label || "(no one)") :
+                                utils.render_users(selected, items)
                     }),
                     itemRender: item =>
                         m(ListItem, {
-                            label: item,
-                            selected: selected.indexOf(item) !== -1
+                            label: item.name,
+                            selected: selected.indexOf(item.uid) !== -1
                         }),
                     itemPredicate: (query, item) =>
-                        item.toLowerCase().includes(query.toLowerCase()),
+                        item.name.toLowerCase().includes(query.toLowerCase()),
                     onSelect: item => {
-                        let idx = selected.indexOf(item);
+                        let idx = selected.indexOf(item.uid);
                         if (idx === -1) {
-                            selected.push(item);
+                            selected.push(item.uid);
                         } else {
                             selected.splice(idx, 1)
                         }

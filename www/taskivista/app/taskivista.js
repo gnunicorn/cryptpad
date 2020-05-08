@@ -12,7 +12,7 @@ define([
     const BG_COLOR = "#fff";
     const BORDER = "solid 1px #c5cdd1";
 
-    let DATA, DATA_UPDATE_CB;
+    let DATA, DATA_UPDATE_CB, USERS, ME;
 
     const Root = {
         view: (vnode) => {
@@ -27,13 +27,13 @@ define([
         }
     }
 
-    function root_for(component, mk_attrs) {
+    function root_for(component) {
         return {
             view: () => {
                 return m(Root, m(component, {
                     BG_COLOR, BORDER, DATA,
                     STATES: DATA.SETTINGS.STATES,
-                    USERS: ["Ben", "Franka", "Milon"], // FIXME
+                    USERS, ME,
                     onDataUpdate: () => {
                         DATA_UPDATE_CB ? DATA_UPDATE_CB() : ""
                     }
@@ -51,12 +51,10 @@ define([
         setMetadata: (meta, myself) => {
             USERS = Object.values(meta.users);
             ME = myself;
-            console.log("updated meta", USERS, ME, meta);
             m.redraw();
         },
         setData: (d) => {
             if (d.version) {
-                console.log("Data incoming", d);
                 DATA = d;
             } else {
                 DATA = utils.generate_default();

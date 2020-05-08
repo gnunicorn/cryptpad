@@ -82,6 +82,7 @@ define([
                             onkeyup: (evt) => {
                                 meeting.agenda = evt.target.value;
                             },
+                            rows: 8,
                             basic: true,
                             size: "ml",
                             fluid: true,

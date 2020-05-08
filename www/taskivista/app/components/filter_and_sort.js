@@ -1,4 +1,8 @@
-define([], function() {
+define([
+    '/taskivista/app/components/user_selector.js'
+], function(
+    UserSelector,
+) {
     'use strict';
 
     const m = window.m;
@@ -42,25 +46,14 @@ define([], function() {
                             iconRight: Icons.CHEVRON_DOWN
                         }
                     }),
-                    m(SelectList, {
+                    m(UserSelector, {
                         items: settings.assignees,
+                        sublabel: 'Assigned:',
                         value: selected.assigned,
-                        itemRender: item =>
-                            m(ListItem, {
-                                label: item,
-                                selected: item === selected.assigned
-                            }),
-                        itemPredicate: (query, item) =>
-                            item.toLowerCase().includes(query.toLowerCase()),
-                        onSelect: item => {
-                            selected.assigned = item,
+                        onUpdate: (nv) => {
+                            selected.assigned = nv;
                             onchange(selected);
                         },
-                        trigger: m(Button, {
-                            iconLeft: Icons.USERS,
-                            label: selected.assigned ? selected.assigned : "Assigned",
-                            iconRight: Icons.CHEVRON_DOWN
-                        })
                     }),
                     // m(Select, {
                     //     options: settings.sorts,
@@ -74,11 +67,6 @@ define([], function() {
                     //     }
                     // }),
                 ];
-
-                // if (vnode.children) {
-                //     kids = kids.concat(vnode.children);
-                // }
-
                 return m(ButtonGroup, kids)
             }
         }

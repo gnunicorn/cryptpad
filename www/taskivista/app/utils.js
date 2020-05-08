@@ -15,6 +15,11 @@ define([], function () {
         }
     }
 
+    const render_users = (user_ids, USERS) => user_ids.map(v => {
+        let found = USERS.find(e => e.uid === v);
+        return found ? found.name : v
+    }).join(", ")
+
     function new_meeting(id, title, whenDate) {
         return {
             id,
@@ -103,5 +108,6 @@ define([], function () {
         new_todo,
         new_meeting,
         generate_default,
+        render_users,
     }
 })

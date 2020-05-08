@@ -50,9 +50,13 @@ define([
 
         return {
             view: (vnode) => {
-                const STATES = vnode.attrs.STATES;
-                const USERS = vnode.attrs.USERS;
-                const todo = vnode.attrs.todo;
+                const { 
+                    STATES,
+                    USERS,
+                    todo
+                } = vnode.attrs;
+
+
                 if (edit_mode) {
                     return m(`.${Classes.ROUNDED}`, {
                         key: todo.id,
@@ -88,14 +92,14 @@ define([
                     let dayDiff = utils.diff_date(todo.dueDate);
                     let formatted = utils.formate_day_diff(dayDiff);
                     if (dayDiff === 0) {
-                        details.push(m(`.${Classes.CUI_CONTROL}.${Classes.POSITIVE}`,[
+                        details.push(m(`span.${Classes.CUI_CONTROL}.${Classes.POSITIVE}`,[
                             m(Icon, {name: Icons.CLOCK}),
                             m("span", ` ${formatted} ${todo.dueTime||""}`
                             )
                         ]
                         ));
                     } else if (dayDiff < 0) {
-                        details.push(m(`.${Classes.CUI_CONTROL}.${Classes.WARNING}`,[
+                        details.push(m(`span.${Classes.CUI_CONTROL}.${Classes.WARNING}`,[
                             m(Icon, {name: Icons.ALERT_CIRCLE}),
                             m(`span`,
                                 ` ${formatted} ${todo.dueTime||""}`
@@ -108,10 +112,10 @@ define([
                         ));
                     }
                 }
-                if (todo.assigned && todo.assigned.length > 0){
-                    details.push(m("", [
+                if (Array.isArray(todo.assigned) && todo.assigned.length > 0) {
+                    details.push(m(".span", [
                         m(Icon, {name: Icons.USERS}),
-                        m("span", [todo.assigned.join(", ")]),
+                        m("span", [utils.render_users(todo.assigned, USERS)]),
                     ]))
                 }
 
