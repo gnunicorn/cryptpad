@@ -24,11 +24,8 @@ define([
     _ui,
     Taskivista,
 ) {
-    /* Here you can initialize your own functions and objects */
-
-
     // This is the main initialization loop
-    var andThen2 = function (framework) {
+    function start_framework (framework) {
         console.log("framework", framework);
         // Here you can load the objects or call the functions you have defined
 
@@ -70,6 +67,16 @@ define([
             Taskivista.initAt(document.getElementById("app"));
         });
 
+        const metadataMgr = framework._.sfCommon.getMetadataMgr();
+        function update_metadata() {
+            Taskivista.setMetadata(
+                metadataMgr.getMetadata(),
+                metadataMgr.getUserData()
+            )
+        }
+        metadataMgr.onReady(update_metadata);
+        metadataMgr.onChange(update_metadata);
+
         // starting the CryptPad framework
         framework.start();
     };
@@ -77,6 +84,7 @@ define([
     // This is the main starting loop
     var main = function () {
         var framework;
+        var common;
 
         nThen(function (waitFor) {
             console.log("creating");
@@ -88,7 +96,7 @@ define([
             }, waitFor(function (fw) {
                 console.log("done creating -----")
                 framework = fw;
-                andThen2(framework);
+                start_framework(framework);
             }));
         });
     };

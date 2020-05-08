@@ -48,6 +48,12 @@ define([
     };
 
     return  {
+        setMetadata: (meta, myself) => {
+            USERS = Object.values(meta.users);
+            ME = myself;
+            console.log("updated meta", USERS, ME, meta);
+            m.redraw();
+        },
         setData: (d) => {
             if (d.version) {
                 console.log("Data incoming", d);
