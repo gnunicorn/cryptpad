@@ -29,11 +29,11 @@ define([
 
     function root_for(component) {
         return {
-            view: () => {
+            view: (vnode) => {
                 return m(Root, m(component, {
                     BG_COLOR, BORDER, DATA,
                     STATES: DATA.SETTINGS.STATES,
-                    USERS, ME,
+                    USERS, ME, id: vnode.attrs.id,
                     onDataUpdate: () => {
                         DATA_UPDATE_CB ? DATA_UPDATE_CB() : ""
                     }
@@ -44,6 +44,7 @@ define([
 
     const Routes = {
         "/": root_for(Dashboard),
+        "/meeting/:id": root_for(Meeting.ViewMeeting),
         "/new_meeting": root_for(Meeting.ScheduleNew),
     };
 
@@ -54,6 +55,7 @@ define([
             m.redraw();
         },
         setData: (d) => {
+            console.log("setting data", d);
             if (d.version) {
                 DATA = d;
             } else {

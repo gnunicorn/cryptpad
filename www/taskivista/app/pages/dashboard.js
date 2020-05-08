@@ -137,6 +137,50 @@ define([
             }
         };
 
+        const MeetingsCard = {
+            view: (vn) => {
+                const {
+                    DATA
+                } = vn.attrs;
+                const {
+                    meetings
+                } = DATA;
+
+                let current_meetings = []
+
+                if (meetings) {
+                    let ms = Object.values(meetings);
+                    ms.sort((a, b) => {
+                        if (a.due_date > b.due_date) {
+                            return 1
+                        } else if (a.due_date < b.due_date) {
+                            return -1
+                        }
+                        return 0
+                    })
+                    current_meetings = ms.slice(0, 5)
+                        .map(meeting => m("li", 
+                            m(m.route.Link,
+                                {href: `/meeting/${meeting.id}`, options: {replace: true}},
+                                meeting.title
+                            ))
+                    );
+                }
+
+                return m(Card, {"style": "margin: 1em 0"}, [
+                    m("h3", [
+                        "Meetings",
+                        m(m.route.Link,
+                            {href: "/new_meeting", options: {replace: true}},
+                            m(Icon, { name: Icons.PLUS_CIRCLE } )
+                        ),
+                    ]),
+                    current_meetings.length > 0 ? ('ul', current_meetings) : ""
+                    
+                ]);
+            }
+        };
+
 
         return {
             view: (vn) => {
@@ -207,22 +251,7 @@ define([
                                     m('li', 'Eget porttitor lorem'),
                                 ])
                             ]),
-                            m(Card, {"style": "margin: 1em 0"}, [
-                                m("h3", [
-                                    "Meetings",
-                                    m(m.route.Link,
-                                        {href: "/new_meeting", options: {replace: true}},
-                                        m(Icon, { name: Icons.PLUS_CIRCLE } )
-                                    ),
-                                ]),
-                                m('ul', [
-                                    m('li', 'Lorem ipsum dolor sit amet'),
-                                    m('li', 'Consectetur adipiscing elit'),
-                                    m('li', 'Faucibus porta lacus fringilla vel'),
-                                    m('li', 'Eget porttitor lorem'),
-                                ]),
-                                
-                            ]),
+                            m(MeetingsCard, vn.attrs),
 
                             m(Card, {}, [
                                 m("h3", "References"),
