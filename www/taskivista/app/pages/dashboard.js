@@ -21,15 +21,15 @@ define([
     } = window.CUI;
 
     function Dasbhboard(vn) {
-        // FIXME move into view
         const {
             USERS,
             STATES,
-            todos,
             onUpdated,
             BG_COLOR,
             BORDER
         } = vn.attrs;
+
+        const { todos }  = vn.attrs.DATA;
 
         let newToDo = utils.new_todo();
         let quick_edit_open = false;
@@ -202,7 +202,10 @@ define([
                                     m('li', 'Consectetur adipiscing elit'),
                                     m('li', 'Faucibus porta lacus fringilla vel'),
                                     m('li', 'Eget porttitor lorem'),
-                                ])
+                                ]),
+                                m(m.route.Link,
+                                    {href: "/new_meeting", options: {replace: true}},
+                                "Add")
                             ]),
 
                             m(Card, {}, [

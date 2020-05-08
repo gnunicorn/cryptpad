@@ -9,8 +9,20 @@ define([], function () {
             id,
             title,
             dueDate,
-            assigned: new Map(),
+            assigned: [],
             dueTime: null,
+            tags: []
+        }
+    }
+
+    function new_meeting(id, title, whenDate) {
+        return {
+            id,
+            title,
+            whenDate,
+            whenTime: null,
+            participants: [],
+            duration: null,
             tags: []
         }
     }
@@ -89,6 +101,7 @@ define([], function () {
         diff_date,
         formate_day_diff,
         new_todo,
+        new_meeting,
         generate_default,
     }
 })

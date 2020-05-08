@@ -1,4 +1,8 @@
-define([], function() {
+define([
+    '/taskivista/app/components/user_selector.js',
+], function(
+    UserSelector
+) {
     'use strict';
     const m = window.m;
     const BG_COLOR = "#fff";
@@ -85,32 +89,11 @@ define([], function() {
                                 value: todo.dueTime
                             }),
 
-                            m(SelectList, {
+                            m(UserSelector, {
                                 items: vnode.attrs.users,
-                                trigger: m(Button, {
-                                    align: 'left',
-                                    compact: true,
-                                    basic: true,
-                                    iconRight: Icons.CHEVRON_DOWN,
-                                    sublabel: 'Assigned:',
-                                    label: (todo.assigned.size === 0) ?
-                                        "(no one)" : todo.assigned.join(", "),
-                                }),
-                                itemRender: item =>
-                                    m(ListItem, {
-                                        label: item,
-                                        selected: todo.assigned.indexOf(item) !== -1
-                                    }),
-                                itemPredicate: (query, item) =>
-                                    item.toLowerCase().includes(query.toLowerCase()),
-                                onSelect: item => {
-                                    let idx = todo.assigned.indexOf(item);
-                                    if (idx === -1) {
-                                        todo.assigned.push(item);
-                                    } else {
-                                        todo.assigned.splice(idx, 1)
-                                    }
-                                }
+                                sublabel: 'Assigned:',
+                                value: todo.assigned,
+                                onUpdate: (nv) => (todo.assigned = nv),
                             })
                         ]),
                         m(TextArea, {

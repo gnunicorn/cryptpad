@@ -1,8 +1,10 @@
 define([
     '/taskivista/app/pages/dashboard.js',
+    '/taskivista/app/pages/meeting.js',
     '/taskivista/app/utils.js',
 ], function (
     Dashboard,
+    Meeting,
     utils,
 ) {
     const m = window.m;
@@ -25,19 +27,24 @@ define([
         }
     }
 
-    const Routes = {
-        "/": { view: () => {
-                return m(Root, m(Dashboard, {
-                    BG_COLOR, BORDER,
+    function root_for(component, mk_attrs) {
+        return {
+            view: () => {
+                return m(Root, m(component, {
+                    BG_COLOR, BORDER, DATA,
                     STATES: DATA.SETTINGS.STATES,
-                    todos: DATA.todos,
-                    USERS: ["Ben", "Franka", "Milon"],
+                    USERS: ["Ben", "Franka", "Milon"], // FIXME
                     onDataUpdate: () => {
                         DATA_UPDATE_CB ? DATA_UPDATE_CB() : ""
                     }
                 }))
             }
         }
+    }
+
+    const Routes = {
+        "/": root_for(Dashboard),
+        "/new_meeting": root_for(Meeting.ScheduleNew),
     };
 
     return  {
