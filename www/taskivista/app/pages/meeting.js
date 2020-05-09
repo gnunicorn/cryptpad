@@ -12,7 +12,9 @@ define([
         Icons,
         Grid,
         Icon,
+        Tag,
         Col,
+        Classes,
     } = window.CUI;
 
 
@@ -20,40 +22,77 @@ define([
         let edit_details = false;
         return {
             view: (vnode) => {
-                console.log(vnode.attrs);
                 const {
                     id,
                     DATA,
                     USERS,
-                    BG_COLOR,
                     onDataUpdate,
-                    BORDER,
                 } = vnode.attrs;
                 const meeting = DATA.meetings[id];
 
-                return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
-                    m("", {
-                        style: {
-                            "padding": "1em",
-                            "background": BG_COLOR,
-                            "border": BORDER,
-                        }}, [
-                            edit_details ? 
-                                m(EditMeetingDetails, {
-                                    meeting,
-                                    USERS,
-                                    onsubmit: (item) => {
-                                        DATA.meetings[id] = item;
-                                        onDataUpdate();
-                                        edit_details = false;
-                                    },
-                                    buttonLabel: "Save"
-                                }) : m(Grid, [
-                                    m(Col, {span:11}, m("h2", meeting.title)),
-                                    m(Col, {span: 1}, m(Icon, {name: Icons.EDIT, onclick:() => (edit_details = true)}))
-                                ])
+
+                let details = [];
+                if (meeting.whenDate) {
+                    let dayDiff = utils.diff_date(meeting.whenDate);
+                    let formatted = utils.formate_day_diff(dayDiff);
+                    if (dayDiff === 0) {
+                        details.push(m(`span.${Classes.CUI_CONTROL}.${Classes.POSITIVE}`,[
+                            m(Icon, {name: Icons.CLOCK}),
+                            m("span", ` ${formatted} ${meeting.whenTime||""}`
+                            )
                         ]
-                    )
+                        ));
+                    } else if (dayDiff < 0) {
+                        details.push(m(`span.${Classes.CUI_CONTROL}.${Classes.WARNING}`,[
+                            m(Icon, {name: Icons.ALERT_CIRCLE}),
+                            m(`span`,
+                                ` ${formatted} ${meeting.whenTime||""}`
+                            )
+                        ]
+                        ));
+                    } else if (dayDiff > 0) {
+                        details.push(m(`span.${Classes.TEXT_MUTED}`,  
+                            `${formatted} ${meeting.whenTime||""}`
+                        ));
+                    }
+                }
+                if (Array.isArray(meeting.participants) && meeting.participants.length > 0) {
+                    details.push(m("span", [
+                        m(Icon, {name: Icons.USERS}),
+                        m("span", [utils.render_users(meeting.participants, USERS)]),
+                    ]))
+                }
+                if (Array.isArray(meeting.tags) && meeting.tags.length > 0) {
+                    details.push(m("", meeting.tags.map((tag) => 
+                        details.push(m(Tag, {label: tag, size: "sm"})))));
+                }
+
+                return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
+                    edit_details ? m(".boxed",
+                        m(EditMeetingDetails, {
+                            meeting,
+                            USERS,
+                            onsubmit: (item) => {
+                                DATA.meetings[id] = item;
+                                onDataUpdate();
+                                edit_details = false;
+                            },
+                            buttonLabel: "Save"
+                        }))
+                    : m(Grid, { class : "boxed" }, [
+                            m(Col, {span:11}, [
+                                m("h2", meeting.title),
+                                m("", details)
+                            ]),
+                            m(Col, {span: 1, style: { "text-align": "right"}},
+                                m(Icon, {name: Icons.EDIT, onclick:() => (edit_details = true)})),
+                            m(Col, { span: 12 }, [
+                                m("h3", "Agenda"),
+                                m("", meeting.agenda), 
+                            ])
+                        ])
+                    ,
+
                 ]);
 
             }
@@ -66,18 +105,12 @@ define([
                 const {
                     USERS,
                     onDataUpdate,
-                    BG_COLOR,
-                    BORDER,
                     DATA,
                 } = vn.attrs;
 
-                return m("", {
-                    class: "taskivista",
+                return m(".taskivista.boxed", {
                     style: {
                         "margin-top": "1em",
-                        "padding": "1em",
-                        "background": BG_COLOR,
-                        "border": BORDER,
                     }}, [
                         m(EditMeetingDetails, {
                             USERS,

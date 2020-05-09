@@ -113,13 +113,13 @@ define([
                     }
                 }
                 if (Array.isArray(todo.assigned) && todo.assigned.length > 0) {
-                    details.push(m(".span", [
+                    details.push(m("span", [
                         m(Icon, {name: Icons.USERS}),
                         m("span", [utils.render_users(todo.assigned, USERS)]),
                     ]))
                 }
 
-                return m(`.${Classes.ROUNDED}.${Classes.GRID}`, {
+                return m(`.boxed.${Classes.ROUNDED}.${Classes.GRID}`, {
                     key: todo.id,
                     style: Object.assign({"align-items": "center"}, vnode.attrs.style),
                     }, [
@@ -136,7 +136,7 @@ define([
                         ]),
                         m("", {style: {"flex-grow": "1"}}, [
                             m("h4", {style: {"margin-bottom": "0.05em"}}, todo.title),
-                            m("", details),
+                            m(".todo-details", details),
                         ]),
                         m("", {style: {"text-align": "right"}}, [
                             m(Icon, {name: Icons.EDIT, onclick: into_edit})

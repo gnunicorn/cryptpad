@@ -32,8 +32,6 @@ define([
                     USERS,
                     STATES,
                     onDataUpdate,
-                    BG_COLOR,
-                    BORDER,
                     DATA,
                 } = vn.attrs;
                 const { todos } = DATA;
@@ -42,12 +40,10 @@ define([
                 if (todos) {
                     for (let [id, todo] of Object.entries(todos)) {
                         currentTodos.push(
-                            m(TodoItem, {todo, USERS, STATES,
+                            m(TodoItem, {todo, USERS, STATES, class: "boxed",
                                 style: {
                                     "margin-top": "0.5em",
                                     "padding": "0.5em 1em",
-                                    "background": BG_COLOR,
-                                    "border": BORDER,
                                 },
                                 onchanged: (updated) => {
                                     todos[updated.id] = updated;
@@ -94,7 +90,6 @@ define([
                 const {
                     USERS,
                     STATES,
-                    BG_COLOR,
                     DATA,
                     onDataUpdate,
                 } = vn.attrs;
@@ -118,12 +113,10 @@ define([
                         onfocus: () => { quick_edit_open = true },
                         onclose: () => { quick_edit_open = false },
                         style: {
-                            "background": BG_COLOR,
                             "padding": quick_edit_open ? "0.5em" : "0.5em 0",
-                            "margin-bottom" : "1em"
                         }
                     }),
-                    m("", {style: "text-align: right", "background": BG_COLOR,},
+                    m("", {style: "text-align: right"},
                         [m(FilterAndSort, {
                             onchange: (sel) => {
                                 console.log("new selection:", sel)
@@ -175,7 +168,7 @@ define([
                             m(Icon, { name: Icons.PLUS_CIRCLE } )
                         ),
                     ]),
-                    current_meetings.length > 0 ? ('ul', current_meetings) : ""
+                    current_meetings.length > 0 ? m('ul', current_meetings) : ""
                     
                 ]);
             }
@@ -184,20 +177,13 @@ define([
 
         return {
             view: (vn) => {
-                const {
-                    BG_COLOR,
-                    BORDER
-                } = vn.attrs;
                 return m(Grid, {
                     align: "top", justify: "space-between", gutter: "xs", class: "taskivista"
                     }, [
                         
                         m(Col, {span: 9}, [
-                            m(`.${Classes.GRID}.${Classes.OUTLINED}.${Classes.ROUNDED}`, {style: {
-                                "margin": "1em 1em 0 0",
-                                "padding": "1em",
-                                "background": BG_COLOR,
-                                "border": BORDER,
+                            m(`.boxed.${Classes.GRID}.${Classes.OUTLINED}.${Classes.ROUNDED}`, {style: {
+                                "margin": "1em 1em 0 0"
                             }}, [
                                 m(Col, {span: 6}, [m("h1", "Taskivista")]),
                                 // m(Col, {span: 6, style: "text-align: right"}, [

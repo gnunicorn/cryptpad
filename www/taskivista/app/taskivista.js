@@ -9,8 +9,6 @@ define([
 ) {
     const m = window.m;
     const CUI = window.CUI;
-    const BG_COLOR = "#fff";
-    const BORDER = "solid 1px #c5cdd1";
 
     let DATA, DATA_UPDATE_CB, USERS, ME;
 
@@ -31,7 +29,7 @@ define([
         return {
             view: (vnode) => {
                 return m(Root, m(component, {
-                    BG_COLOR, BORDER, DATA,
+                    DATA,
                     STATES: DATA.SETTINGS.STATES,
                     USERS, ME, id: vnode.attrs.id,
                     onDataUpdate: () => {

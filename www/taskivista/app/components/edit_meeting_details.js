@@ -73,7 +73,9 @@ define([
                     m(Col, { span: 7 }, [
                         m(UserSelector, {
                             sublabel: "Invitees:",
-                            items: vnode.attrs.USERS
+                            items: vnode.attrs.USERS,
+                            value: meeting.participants,
+                            onUpdate: (pa) => (meeting.participants = pa )
                         })
                     ]),
                     m(Col, { span: 8, style: { "margin-top": "0.5em" } }, [

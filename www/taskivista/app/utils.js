@@ -26,6 +26,7 @@ define([], function () {
             title,
             whenDate,
             whenTime: null,
+            agenda: null,
             participants: [],
             duration: null,
             tags: []

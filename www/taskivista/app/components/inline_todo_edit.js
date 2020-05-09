@@ -5,7 +5,6 @@ define([
 ) {
     'use strict';
     const m = window.m;
-    const BG_COLOR = "#fff";
 
     const {
         Button,
@@ -57,6 +56,11 @@ define([
                 }
 
                 return m(Form, {
+                    class: "boxed",
+                    style: {
+                        "padding": "0",
+                        "margin-bottom" : "1em"
+                    },
                     onsubmit: vnode.attrs.onsubmit ? (evt) => {
                         evt.preventDefault();
                         vnode.attrs.onsubmit(todo, evt);
