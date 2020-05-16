@@ -1,12 +1,12 @@
 define([
     '/taskivista/app/components/inline_todo_edit.js',
+    '/taskivista/app/components/state_select.js',
     '/taskivista/app/models/todo.js',
-    '/taskivista/app/models/state.js',
     '/taskivista/app/utils.js',
 ], function(
     InlineTodoEdit,
+    StateSelect,
     TodoModel,
-    StateModel,
     utils,
 ) {
     'use strict';
@@ -68,18 +68,7 @@ define([
                     ]);
                 }
 
-                const state = todo.state || "open";
-                let state_choices = STATES.map((s) =>
-                    m(MenuItem, {
-                        iconLeft: s.icon,
-                        label: s.label || s.state,
-                        intent: state == s.state ? "primary" : undefined,
-                        onclick: () => {
-                            TodoModel.updateState(todo, s.state);
-                        }
-                    })
-                );
-                state_choices.unshift(m(MenuHeading, 'Change to'));
+                
 
                 let details = [];
                 if (todo.description) {
@@ -120,17 +109,10 @@ define([
                     key: todo.id,
                     style: Object.assign({"align-items": "center"}, vnode.attrs.style),
                     }, [
-                        m("", [
-                            m(PopoverMenu, {
-                                trigger: m(Button, {
-                                    size: "sm",
-                                    basic: true,
-                                    compact: true,
-                                    iconLeft: StateModel.get_icon(state)
-                                }),
-                                content: state_choices
+                        m("", m(StateSelect, {state: todo.state,
+                            onUpdate: (new_state) => (TodoModel.updateState(todo, new_state))
                             })
-                        ]),
+                        ),
                         m("", {style: {"flex-grow": "1"}}, [
                             m("h4", {style: {"margin-bottom": "0.05em"}},
                                 m(m.route.Link,

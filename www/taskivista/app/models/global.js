@@ -6,6 +6,9 @@ define([], function() {
                 DATA, DATA_UPDATE_CB, USERS, ME
             }
         },
+        getSettings: () => {
+            return DATA.SETTINGS;
+        },
         setData: (d) => {
             console.log("setting data", d);
             DATA = d

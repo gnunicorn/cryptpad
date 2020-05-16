@@ -4,6 +4,9 @@ define([
     global
 ) {
     'use strict';
+    const {
+        Icons,
+      } = window.CUI;
     function get_icon(state) {
         const STATES = global.getState().DATA.SETTINGS.STATES;
         for (let s of STATES) {

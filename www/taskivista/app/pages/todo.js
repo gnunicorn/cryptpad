@@ -1,10 +1,14 @@
 define([
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/activity_item.js',
+    '/taskivista/app/components/state_select.js',
+    '/taskivista/app/models/todo.js',
     '/taskivista/app/utils.js',
 ], function(
     InlineTodoEdit,
     ActivityItem,
+    StateSelect,
+    TodoModel,
     utils,
 ) {
     'use strict';
@@ -90,7 +94,16 @@ define([
                         }))
                     : m(Grid, { class : "boxed" }, [
                             m(Col, {span:11}, [
-                                m("h2", todo.title),
+                                m("h2", [
+                                    m(StateSelect, {
+                                        size: "xl",
+                                        state: todo.state,
+                                        onUpdate: (new_state) => {
+                                            TodoModel.updateState(todo, new_state)
+                                        }
+                                    }),
+                                    todo.title
+                                ]),
                                 m("", details)
                             ]),
                             m(Col, {span: 1, style: { "text-align": "right"}},

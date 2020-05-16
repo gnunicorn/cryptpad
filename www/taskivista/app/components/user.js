@@ -18,7 +18,6 @@ define([
             if (!!user.id) {
                 user_id = user.id;
             }
-            console.log(USERS);
 
             let details = USERS[user_id];
 
