@@ -9,9 +9,29 @@ define([], function () {
             id,
             title,
             dueDate,
+            state: "open",
             assigned: [],
             dueTime: null,
-            tags: []
+            tags: [],
+            activites: []
+        }
+    }
+
+    function get_state_icon(states, state) {
+        for (let s of states) {
+            if (s.state == state) {
+                return s.icon
+            }
+        }
+        return Icons.TRENDING_UP
+    }
+
+    function create_activity(actor, verb, object) {
+        return {
+            when: (new Date()).toJSON(),
+            actor,
+            verb,
+            object
         }
     }
 
@@ -29,7 +49,8 @@ define([], function () {
             agenda: null,
             participants: [],
             duration: null,
-            tags: []
+            tags: [],
+            outcomes: [],
         }
     }
 
@@ -110,5 +131,7 @@ define([], function () {
         new_meeting,
         generate_default,
         render_users,
+        create_activity,
+        get_state_icon,
     }
 })

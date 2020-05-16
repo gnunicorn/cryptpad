@@ -1,8 +1,12 @@
 define([
     '/taskivista/app/components/inline_todo_edit.js',
+    '/taskivista/app/models/todo.js',
+    '/taskivista/app/models/state.js',
     '/taskivista/app/utils.js',
 ], function(
     InlineTodoEdit,
+    TodoModel,
+    StateModel,
     utils,
 ) {
     'use strict';
@@ -27,16 +31,6 @@ define([
         MenuItem,
         Colors,
       } = window.CUI;
-
-    function get_state_icon(states, state) {
-        for (let s of states) {
-            if (s.state == state) {
-                return s.icon
-            }
-        }
-        return Icons.TRENDING_UP
-    }
-
 
     return function todo_item() {
         var edit_mode = false;
@@ -80,6 +74,9 @@ define([
                         iconLeft: s.icon,
                         label: s.label || s.state,
                         intent: state == s.state ? "primary" : undefined,
+                        onclick: () => {
+                            TodoModel.updateState(todo, s.state);
+                        }
                     })
                 );
                 state_choices.unshift(m(MenuHeading, 'Change to'));
@@ -129,13 +126,17 @@ define([
                                     size: "sm",
                                     basic: true,
                                     compact: true,
-                                    iconLeft: get_state_icon(STATES, state)
+                                    iconLeft: StateModel.get_icon(state)
                                 }),
                                 content: state_choices
                             })
                         ]),
                         m("", {style: {"flex-grow": "1"}}, [
-                            m("h4", {style: {"margin-bottom": "0.05em"}}, todo.title),
+                            m("h4", {style: {"margin-bottom": "0.05em"}},
+                                m(m.route.Link,
+                                    {href: `/todo/${todo.id}`, options: {replace: true}},
+                                    todo.title
+                                )),
                             m(".todo-details", details),
                         ]),
                         m("", {style: {"text-align": "right"}}, [

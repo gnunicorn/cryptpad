@@ -1,20 +1,29 @@
 define([
     '/taskivista/app/pages/dashboard.js',
     '/taskivista/app/pages/meeting.js',
+    '/taskivista/app/pages/todo.js',
+    '/taskivista/app/models/global.js',
     '/taskivista/app/utils.js',
 ], function (
     Dashboard,
     Meeting,
+    Todo,
+    global,
     utils,
 ) {
     const m = window.m;
     const CUI = window.CUI;
-
-    let DATA, DATA_UPDATE_CB, USERS, ME;
+    const  {
+        getState,
+        setMetadata,
+        setData,
+        setDataUpdate,
+    } = global;
 
     const Root = {
         view: (vnode) => {
             let style = {};
+            let { DATA } = getState();
             if (DATA && DATA.SETTING && DATA.SETTINGS.background_image) {
                 style = {
                     "background": `url(${DATA.SETTINGS.background_image}) center center no-repeat`,
@@ -28,6 +37,7 @@ define([
     function root_for(component) {
         return {
             view: (vnode) => {
+                let { DATA, USERS, ME, DATA_UPDATE_CB } = getState();
                 return m(Root, m(component, {
                     DATA,
                     STATES: DATA.SETTINGS.STATES,
@@ -43,21 +53,20 @@ define([
     const Routes = {
         "/": root_for(Dashboard),
         "/meeting/:id": root_for(Meeting.ViewMeeting),
+        "/todo/:id": root_for(Todo.ViewTodo),
         "/new_meeting": root_for(Meeting.ScheduleNew),
     };
 
     return  {
         setMetadata: (meta, myself) => {
-            USERS = Object.values(meta.users);
-            ME = myself;
+            setMetadata(meta, myself);
             m.redraw();
         },
         setData: (d) => {
-            console.log("setting data", d);
             if (d.version) {
-                DATA = d;
+                setData(d);
             } else {
-                DATA = utils.generate_default();
+                setData(utils.generate_default());
                 if(DATA_UPDATE_CB) {
                     DATA_UPDATE_CB();
                 }
@@ -65,16 +74,18 @@ define([
             m.redraw();
         },
         getData: () => {
+            let { DATA } = getState();
             return DATA
         },
         setRoutePrefix: (p) => {
+            console.log("Setting prefix:", p);
             m.route.prefix = p;
         },
         onDataUpdate: (cb) => {
-            DATA_UPDATE_CB = cb;
+            setDataUpdate(cb)
         },
         setDefaultData: () => {
-            DATA = utils.generate_default();
+            setData(utils.generate_default());
         },
         initAt: (elem) => {
             m.route(elem, "/", Routes);

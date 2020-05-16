@@ -1,5 +1,4 @@
 
-// This is the initialization loading the CryptPad libraries
 define([
     'jquery',
     '/bower_components/nthen/index.js',
@@ -11,7 +10,6 @@ define([
     '/customize/messages.js',
     'less!/taskivista/app/taskivista.less',
     '/taskivista/app/taskivista.js',
-    /* Here you can add your own javascript or css to load */
 ], function (
     $,
     nThen,
@@ -24,6 +22,8 @@ define([
     _ui,
     Taskivista,
 ) {
+
+    const URL_PREFIXER = new RegExp("#\/.*?\/taskivista\/edit\/.*?\/");
     // This is the main initialization loop
     function start_framework (framework) {
         console.log("framework", framework);
@@ -63,6 +63,11 @@ define([
 
         // This is called when the system is ready to start editing
         framework.onReady(function (newPad) {
+            console.log(document.location.hash);
+            let match = document.location.hash.match(URL_PREFIXER);
+            if (match !== null) {
+                Taskivista.setRoutePrefix(match[0]);
+            }
             Taskivista.onDataUpdate(() => framework.localChange());
             Taskivista.initAt(document.getElementById("app"));
         });
