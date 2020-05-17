@@ -63,6 +63,18 @@ define([
             m.redraw();
         },
         setData: (d) => {
+            if (!d.notes) { 
+                d.notes = {};
+            }
+            if (!d.latest) {
+                d.latest = {
+                    "notes": [],
+                    "todos": [],
+                    "todo_updates": [],
+                    "meetings": [],
+                    "activites": [],
+                }
+            }
             if (d.version) {
                 setData(d);
             } else {

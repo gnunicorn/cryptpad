@@ -7,7 +7,8 @@ define([
 ) {
     'use strict';
     const {
-        getState
+        getState,
+        add_to_latest,
     } = globals
     const {
         Icons
@@ -18,13 +19,15 @@ define([
         if (!todo.activities) {
             todo.activities = []
         };
-        const { ME  } = getState();
+        const { ME } = getState();
 
         activity.when = (new Date()).toJSON();
         activity.actor = {id : ME.uid, name: ME.name };
 
         // activites to the top!
         todo.activities.unshift(activity);
+        add_to_latest("todo_updates", todo.id);
+
     }
 
     function updateDetails(todo, new_todo) {
@@ -67,8 +70,10 @@ define([
             set_verb("retagged");
         }
 
-        let new_assigned = new_todo.assigned.filter((t) => todo.assigned.indexOf(t) == -1);
-        let removed_assigned = todo.assigned.filter((t) => new_todo.assigned.indexOf(t) == -1);
+        let new_assigned = new_todo.assigned ? 
+            new_todo.assigned.filter((t) => todo.assigned.indexOf(t) == -1) : [];
+        let removed_assigned = todo.assigned ?
+            todo.assigned.filter((t) => new_todo.assigned.indexOf(t) == -1) : [];
         todo.assigned = new_todo.assigned;
 
         if (removed_assigned.length) {
@@ -121,7 +126,7 @@ define([
             // nothing to be done;
             return false;
         }
-        let { ME, DATA, DATA_UPDATE_CB } = getState();
+        let { DATA, DATA_UPDATE_CB } = getState();
         let old_state = todo.state;
         todo.state = new_state;
         DATA.todos[todo.id] = todo;
@@ -168,6 +173,9 @@ define([
             object: context,
         });
         DATA.todos[item.id] = item;
+
+        add_to_latest("todos", todo.id);
+        
         DATA_UPDATE_CB ? DATA_UPDATE_CB() : "";
 
         utils.Toaster.show({
