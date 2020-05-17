@@ -113,7 +113,7 @@ define([
                             ])
                         ])
                     ,
-                    todo.activities ? m("",  todo.activities.map((item) =>  m(ActivityItem, { item }))) : null     
+                    todo.activities ? m(".activity-stream",  todo.activities.map((item) =>  m(ActivityItem, { item }))) : null     
                 ]);
             }
         }

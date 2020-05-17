@@ -60,5 +60,48 @@
                 padding-right: 0.5em;
             }
         }
+
+        .activity-stream {
+            position: relative;
+            &::before {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 1.2em;
+                width: 2px;
+                background: #aaa;
+                height: 100%;
+                display: block;
+                content: "";
+            }
+        }
+
+        .activity {
+            margin: 0.5em;
+            font-size: 0.8em;
+            .user, .when, .msg {
+                padding-right: 0.25em;
+            }
+            > .cui-icon {
+                border-radius: 100%;
+                background: #aaa;
+                color: white;
+                padding: 0.5em;
+                margin-right: 0.5em;
+                &.cui-warning {
+                    background-color: #f57c00;
+                    color: white;
+                }
+                &.cui-positive {
+                    background-color: #4caf50;
+                    color: white;
+                }
+                &.cui-negative {
+                    background-color: #f44336;
+                    color: white;
+                }
+            }
+        }
+
     }
 }
