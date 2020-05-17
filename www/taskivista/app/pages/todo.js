@@ -8,7 +8,7 @@ define([
     InlineTodoEdit,
     ActivityItem,
     StateSelect,
-    TodoModel,
+    ToDoModel,
     utils,
 ) {
     'use strict';
@@ -73,18 +73,12 @@ define([
                 return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
                     edit_details ? m(".boxed",
                         m(InlineTodoEdit, {
-                            todo,
+                            todo: $.extend(true, {}, todo),
                             users: USERS,
                             expanded: true,
-                            onsubmit: (item) => {
-                                DATA.todos[id] = item;
-                                onDataUpdate();
+                            onsubmit: (updates) => {
+                                ToDoModel.updateDetails(todo, updates);
                                 edit_details = false;
-                                utils.Toaster.show({
-                                    message: `ToDo updated: ${item.title}`,
-                                    icon: Icons.CHECK_SQUARE,
-                                    intent: "positive"
-                                });
                             },
                             buttonLabel: "Save",
                             onclose: () => { edit_details = false },
@@ -99,7 +93,7 @@ define([
                                         size: "xl",
                                         state: todo.state,
                                         onUpdate: (new_state) => {
-                                            TodoModel.updateState(todo, new_state)
+                                            ToDoModel.updateState(todo, new_state)
                                         }
                                     }),
                                     todo.title

@@ -6,7 +6,7 @@ define([
 ], function(
     InlineTodoEdit,
     StateSelect,
-    TodoModel,
+    ToDoModel,
     utils,
 ) {
     'use strict';
@@ -31,6 +31,7 @@ define([
         MenuItem,
         Colors,
       } = window.CUI;
+      const $ = window.jQuery;
 
     return function todo_item() {
         var edit_mode = false;
@@ -50,7 +51,6 @@ define([
                     todo
                 } = vnode.attrs;
 
-
                 if (edit_mode) {
                     return m(`.${Classes.ROUNDED}`, {
                         key: todo.id,
@@ -58,17 +58,16 @@ define([
                         }, [m(InlineTodoEdit, {
                             users: USERS,
                             expanded: true,
-                            todo: Object.assign({}, todo),
-                            onsubmit: (todo) => {
-                                vnode.attrs.onchanged(todo),
+                            todo: $.extend(true, {}, todo),
+                            onsubmit: (new_todo) => {
+                                ToDoModel.updateDetails(todo, new_todo);
+                                vnode.attrs.onchanged && vnode.attrs.onchanged(todo);
                                 close_edit();
                             },
                             onclose: close_edit
                         })
                     ]);
                 }
-
-                
 
                 let details = [];
                 if (todo.description) {
@@ -110,7 +109,7 @@ define([
                     style: Object.assign({"align-items": "center"}, vnode.attrs.style),
                     }, [
                         m("", m(StateSelect, {state: todo.state,
-                            onUpdate: (new_state) => (TodoModel.updateState(todo, new_state))
+                            onUpdate: (new_state) => (ToDoModel.updateState(todo, new_state))
                             })
                         ),
                         m("", {style: {"flex-grow": "1"}}, [

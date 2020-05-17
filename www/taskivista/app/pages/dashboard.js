@@ -90,8 +90,6 @@ define([
                 const {
                     USERS,
                     STATES,
-                    DATA,
-                    onDataUpdate,
                 } = vn.attrs;
                 return m("", [
                     m(InlineToDoEdit, {
@@ -99,21 +97,13 @@ define([
                         todo: newToDo,
                         expanded: quick_edit_open,
                         onsubmit: (item) => {
-                            let todo_id = utils.generate_next_id(DATA.todos);
-                            item.id = todo_id;
-                            DATA.todos[item.id] = item;
-                            onDataUpdate(item);
-                            utils.Toaster.show({
-                                message: `ToDo added: ${item.title}`,
-                                icon: Icons.CHECK_SQUARE,
-                                intent: "positive"
-                            });
+                            ToDoModel.create(item);
                             newToDo = utils.new_todo();
                         },
                         onfocus: () => { quick_edit_open = true },
                         onclose: () => { quick_edit_open = false },
                         style: {
-                            "padding": quick_edit_open ? "0.5em" : "0.5em 0",
+                            "padding": "0.5em 0",
                         }
                     }),
                     m("", {style: "text-align: right"},

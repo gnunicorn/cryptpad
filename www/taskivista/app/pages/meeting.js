@@ -1,9 +1,17 @@
 define([
     '/taskivista/app/components/edit_meeting_details.js',
+    '/taskivista/app/components/inline_todo_edit.js',
+    '/taskivista/app/components/todo_item.js',
+    '/taskivista/app/models/todo.js',
+    '/taskivista/app/models/global.js',
     '/taskivista/app/utils.js',
 
 ], function(
     EditMeetingDetails,
+    InlineToDoEdit,
+    ToDoItem,
+    ToDoModel,
+    global,
     utils,
 ) {
     'use strict';
@@ -15,19 +23,28 @@ define([
         Tag,
         Col,
         Classes,
+        Button,
+        ButtonGroup,
     } = window.CUI;
+
+    const {
+        getState,
+    } = global;
 
 
     function ViewMeeting(vinit) {
         let edit_details = false;
+        let pending_outcomes = [];
         return {
             view: (vnode) => {
                 const {
                     id,
+                } = vnode.attrs;
+                const {
                     DATA,
                     USERS,
                     onDataUpdate,
-                } = vnode.attrs;
+                } = getState();
                 const meeting = DATA.meetings[id];
 
 
@@ -67,6 +84,39 @@ define([
                         details.push(m(Tag, {label: tag, size: "sm"})))));
                 }
 
+                let outcomes = [];
+                if (Array.isArray(meeting.outcomes) && meeting.outcomes.length > 0) {
+                    outcomes = meeting.outcomes.map((a) => {
+                        return m(ToDoItem, {
+                                USERS,
+                                todo: DATA.todos[a.todo_id],
+                            }
+                        )
+                    })
+                }
+
+                let pending = pending_outcomes.map((o, idx) => {
+                    if (o.type == "todo") {
+                        return m(InlineToDoEdit, {
+                            users: USERS,
+                            todo: o.todo,
+                            expanded: true,
+                            onsubmit: (item) => {
+                                let todo = ToDoModel.create(item, {meeting_id: meeting.id});
+                                meeting.outcomes.push({
+                                    type: "todo",
+                                    todo_id: todo.id
+                                });
+                                pending_outcomes.splice(idx, 1);
+                            },
+                            onclose: () => {
+                                pending_outcomes.splice(idx, 1);
+                            }
+                        })
+                    }
+                })
+
+
                 return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
                     edit_details ? m(".boxed",
                         m(EditMeetingDetails, {
@@ -92,9 +142,33 @@ define([
                             ])
                         ])
                     ,
-
+                    m(".boxed", { style: "margin-top: 1em"}, [
+                        m("h2", "Outcomes"),
+                        m("", outcomes),
+                        m("", pending),
+                        m(ButtonGroup, {
+                            basic: true,
+                        }, [
+                            m(Button, {
+                                iconLeft: Icons.CHECK_SQUARE,
+                                label: "ToDo",
+                                onclick: () => {
+                                    pending_outcomes.push({
+                                        type: "todo", todo: utils.new_todo()
+                                    });
+                                }
+                            }),
+                            m(Button, {
+                                iconLeft: Icons.FLAG,
+                                label: "Decision"
+                            }),
+                            m(Button, {
+                                iconLeft: Icons.FILE,
+                                label: "Note"
+                            })
+                        ]),
+                    ]),
                 ]);
-
             }
         }
     }
