@@ -3,6 +3,7 @@ define([
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/todo_item.js',
     '/taskivista/app/models/todo.js',
+    '/taskivista/app/models/note.js',
     '/taskivista/app/models/global.js',
     '/taskivista/app/utils.js',
 
@@ -11,6 +12,7 @@ define([
     InlineToDoEdit,
     ToDoItem,
     ToDoModel,
+    NotesModel,
     global,
     utils,
 ) {
@@ -25,11 +27,64 @@ define([
         Classes,
         Button,
         ButtonGroup,
+        TextArea,
     } = window.CUI;
 
     const {
         getState,
     } = global;
+    
+
+    const ViewNote = {
+        view: (vn) => m("", [
+            vn.attrs.note.type == "decision" ? m(Icon, {
+                name: Icons.FLAG, itent: "warning"
+            }) : m(Icon, {
+                name: Icons.FILE
+            }),
+            m("", vn.attrs.note.content)
+        ])
+    }
+
+    const EditNote = (vn) => {
+        let note = vn.attrs.note;
+        return {
+            view: (vn) => m("", {class: Classes.GRID}, [
+                m("",
+                    note.type == "decision" ? m(Icon, {
+                        name: Icons.FLAG, itent: "warning"
+                    }) : m(Icon, {
+                        name: Icons.FILE
+                    })
+                ),
+                m("", {style: {"flex-grow": "1"}},
+                    m(TextArea, {
+                        width: "100%",
+                        basic: true,
+                        value: note.content,
+                        onchange: (e) => {
+                            note.content = e.target.value;
+                        }
+                    })
+                ),
+                m(ButtonGroup, {
+                    basic: true
+                }, [
+                    m(Button, {
+                        iconLeft: Icons.X,
+                        onclick: vn.attrs.oncancel
+                    }),
+                    m(Button, {
+                        label: "Save",
+                        intent: "primary",
+                        onclick: () => {
+                            vn.attrs.onsubmit(note);
+                        }
+                    })
+                ])
+            ])
+        }
+    }
 
 
     function ViewMeeting(vinit) {
@@ -87,11 +142,16 @@ define([
                 let outcomes = [];
                 if (Array.isArray(meeting.outcomes) && meeting.outcomes.length > 0) {
                     outcomes = meeting.outcomes.map((a) => {
-                        return m(ToDoItem, {
+                        if (a.type == "todo") {
+                            return m(ToDoItem, {
                                 USERS,
                                 todo: DATA.todos[a.todo_id],
-                            }
-                        )
+                            })
+                        } else if (a.type == "note" || a.type == "decision") {
+                            return m(ViewNote, {
+                                note: DATA.notes[a.note_id],
+                            })
+                        }
                     })
                 }
 
@@ -110,6 +170,21 @@ define([
                                 pending_outcomes.splice(idx, 1);
                             },
                             onclose: () => {
+                                pending_outcomes.splice(idx, 1);
+                            }
+                        })
+                    } else if (o.type == "note" || o.type == "decision") {
+                        return m(EditNote, {
+                            note: o,
+                            onsubmit: (v) => {
+                                let note = NotesModel.create(v);
+                                meeting.outcomes.push({
+                                    type: note.type,
+                                    note_id: note.id
+                                });
+                                pending_outcomes.splice(idx, 1);
+                            },
+                            oncancel: () => {
                                 pending_outcomes.splice(idx, 1);
                             }
                         })
@@ -160,11 +235,21 @@ define([
                             }),
                             m(Button, {
                                 iconLeft: Icons.FLAG,
-                                label: "Decision"
+                                label: "Decision",
+                                onclick: () => {
+                                    pending_outcomes.push({
+                                        type: "decision", content: ""
+                                    });
+                                }
                             }),
                             m(Button, {
                                 iconLeft: Icons.FILE,
-                                label: "Note"
+                                label: "Note",
+                                onclick: () => {
+                                    pending_outcomes.push({
+                                        type: "note", content: ""
+                                    });
+                                }
                             })
                         ]),
                     ]),

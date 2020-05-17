@@ -174,7 +174,7 @@ define([
         });
         DATA.todos[item.id] = item;
 
-        add_to_latest("todos", todo.id);
+        add_to_latest("todos", item.id);
         
         DATA_UPDATE_CB ? DATA_UPDATE_CB() : "";
 
