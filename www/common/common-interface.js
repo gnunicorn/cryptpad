@@ -145,12 +145,12 @@ define([
     };
 
     dialog.okButton = function (content, classString) {
-        var sel = typeof(classString) === 'string'? 'button.ok.' + classString:'button.ok.primary';
+        var sel = typeof(classString) === 'string'? 'button.ok.' + classString:'button.btn.ok.primary';
         return h(sel, { tabindex: '2', }, content || Messages.okButton);
     };
 
     dialog.cancelButton = function (content, classString) {
-        var sel = typeof(classString) === 'string'? 'button.' + classString:'button.cancel';
+        var sel = typeof(classString) === 'string'? 'button.' + classString:'button.btn.cancel';
         return h(sel, { tabindex: '1'}, content || Messages.cancelButton);
     };
 
@@ -328,11 +328,7 @@ define([
         var input = dialog.textInput();
 
         var tagger = dialog.frame([
-            dialog.message([
-                Messages.tags_add,
-                h('br'),
-                Messages.tags_searchHint,
-            ]),
+            dialog.message([ Messages.tags_add ]),
             input,
             h('center', h('small', Messages.tags_notShared)),
             dialog.nav(),
@@ -360,11 +356,15 @@ define([
         var $cancel = findCancelButton(tagger).click(function (e) {
             close(null, e);
         });
-        listener = listenForKeys(function () {
-            $ok.click();
-        }, function () {
-            $cancel.click();
-        }, tagger);
+        $(tagger).on('keydown', function (e) {
+            if (e.which === 27) {
+                $cancel.click();
+                return;
+            }
+            if (e.which === 13) {
+                $ok.click();
+            }
+        });
 
         $(tagger).on('click submit', function (e) {
             e.stopPropagation();
@@ -377,6 +377,14 @@ define([
             field.focus();
         });
 
+        var $field = field.tokenfield.closest('.tokenfield').find('.token-input');
+        $field.on('keypress', function (e) {
+            if (!$field.val() && e.which === 13) { return void $ok.click(); }
+        });
+        $field.on('keydown', function (e) {
+            if (!$field.val() && e.which === 27) { return void $cancel.click(); }
+        });
+
         return tagger;
     };
 
@@ -387,7 +395,11 @@ define([
         var navs = [];
         buttons.forEach(function (b) {
             if (!b.name || !b.onClick) { return; }
-            var button = h('button', { tabindex: '1', 'class': b.className || '' }, b.name);
+            var button = h('button', { tabindex: '1', 'class': b.className || '' }, [
+                b.iconClass ? h('i' + b.iconClass) : undefined,
+                b.name
+            ]);
+            button.classList.add('btn');
             var todo = function () {
                 var noClose = b.onClick();
                 if (noClose) { return; }
@@ -638,9 +650,6 @@ define([
         var $ok = $(ok).click(function (ev) { close(true, ev); });
         var $cancel = $(cancel).click(function (ev) { close(false, ev); });
 
-        if (opt.cancelClass) { $cancel.addClass(opt.cancelClass); }
-        if (opt.okClass) { $ok.addClass(opt.okClass); }
-
         listener = listenForKeys(function () {
             $ok.click();
         }, function () {
@@ -799,6 +808,7 @@ define([
 
     UI.createHelper = function (href, text) {
         var q = h('a.fa.fa-question-circle', {
+            'data-cptippy-html': true,
             style: 'text-decoration: none !important;',
             title: text,
             href: href,
@@ -1036,7 +1046,7 @@ define([
             }
         },
         //arrowType: 'round',
-        dynamicTitle: true,
+        dynamicTitle: false,
         arrowTransform: 'scale(2)',
         zIndex: 100000001
     });
@@ -1044,6 +1054,7 @@ define([
         var MutationObserver = window.MutationObserver;
         var addTippy = function (i, el) {
             if (el._tippy) { return; }
+            if (!el.getAttribute('title')) { return; }
             if (el.nodeName === 'IFRAME') { return; }
             var opts = {
                 distance: 15
@@ -1053,6 +1064,10 @@ define([
             }).forEach(function (obj) {
                 opts[obj.name.slice(11)] = obj.value;
             });
+            if (!el.getAttribute('data-cptippy-html') && !el.fixHTML) {
+                el.setAttribute('title', Util.fixHTML(el.getAttribute('title'))); // fixHTML
+                el.fixHTML = true; // Don't clean HTML twice on the same element
+            }
             Tippy(el, opts);
         };
         // This is the robust solution to remove dangling tooltips
@@ -1075,6 +1090,7 @@ define([
                     }
                 }
                 if (mutation.type === "attributes" && mutation.attributeName === "title") {
+                    mutation.target.fixHTML = false;
                     addTippy(0, mutation.target);
                 }
             });
@@ -1356,6 +1372,44 @@ define([
             hide: hide,
             remove: remove
         };
+    };
+
+    /*  Given two jquery objects (a 'button' and a 'drawer')
+        add handlers to make it such that clicking the button
+        displays the drawer contents, and blurring the button
+        hides the drawer content. Used for toolbar buttons at the moment.
+    */
+    UI.createDrawer = function ($button, $content) {
+        $button.click(function () {
+            $content.toggle();
+            $button.removeClass('cp-toolbar-button-active');
+            if ($content.is(':visible')) {
+                $button.addClass('cp-toolbar-button-active');
+                $content.focus();
+                var wh = $(window).height();
+                var topPos = $button[0].getBoundingClientRect().bottom;
+                $content.css('max-height', Math.floor(wh - topPos - 1)+'px');
+            }
+        });
+        var onBlur = function (e) {
+            if (e.relatedTarget) {
+                var $relatedTarget = $(e.relatedTarget);
+
+                if ($relatedTarget.is('.cp-toolbar-drawer-button')) { return; }
+                if ($relatedTarget.parents('.cp-toolbar-drawer-content').length) {
+                    $relatedTarget.blur(onBlur);
+                    return;
+                }
+            }
+            $button.removeClass('cp-toolbar-button-active');
+            $content.hide();
+        };
+        $content.blur(onBlur).appendTo($button);
+        $('body').keydown(function (e) {
+            if (e.which === 27) {
+                $content.blur();
+            }
+        });
     };
 
     return UI;

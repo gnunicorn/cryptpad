@@ -26,11 +26,6 @@ define([
         // Old format: data was stored directly in "content"
         var userData = data.msg.content.user || data.msg.content;
 
-        // Check if the request is valid (send by the correct user)
-        if (data.msg.author !== userData.curvePublic) {
-            return void cb(true);
-        }
-
         if (isMuted(ctx, data)) { return void cb(true); }
 
         // Don't show duplicate friend request: if we already have a friend request
@@ -174,7 +169,7 @@ define([
     };
 
     handlers['UNFRIEND'] = function (ctx, box, data, cb) {
-        var curve = data.msg.content.curvePublic;
+        var curve = data.msg.author;
         var friend = Messaging.getFriend(ctx.store.proxy, curve);
         if (!friend) { return void cb(true); }
         delete ctx.store.proxy.friends[curve];
@@ -262,8 +257,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
-
         if (isMuted(ctx, data)) { return void cb(true); }
 
         var channel = content.channel;
@@ -292,8 +285,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
-
         var channel = content.channel;
         var res = ctx.store.manager.findChannel(channel, true);
 
@@ -314,8 +305,6 @@ define([
     handlers['ADD_OWNER'] = function (ctx, box, data, cb) {
         var msg = data.msg;
         var content = msg.content;
-
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
 
         if (isMuted(ctx, data)) { return void cb(true); }
 
@@ -345,7 +334,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
         if (!content.channel && !content.teamChannel) {
             console.log('Remove invalid notification');
             return void cb(true);
@@ -374,8 +362,6 @@ define([
     handlers['INVITE_TO_TEAM'] = function (ctx, box, data, cb) {
         var msg = data.msg;
         var content = msg.content;
-
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
 
         if (isMuted(ctx, data)) { return void cb(true); }
 
@@ -418,7 +404,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
         if (!content.teamChannel) {
             console.log('Remove invalid notification');
             return void cb(true);
@@ -435,7 +420,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
         if (!content.teamChannel) {
             console.log('Remove invalid notification');
             return void cb(true);
@@ -460,18 +444,27 @@ define([
             // If they declined the invitation, remove them from the roster (as a pending member)
             try {
                 var module = ctx.store.modules['team'];
-                module.removeFromTeam(teamId, msg.author);
+                module.removeFromTeam(teamId, msg.author, true);
             } catch (e) { console.error(e); }
         }
 
-        cb(false);
+        var userData = content.user || content;
+        box.sendMessage({
+            type: 'INVITE_TO_TEAM_ANSWERED',
+            content: {
+                user: userData,
+                team: team,
+                answer: content.answer
+            }
+        }, function () {});
+
+        cb(true);
     };
 
     handlers['TEAM_EDIT_RIGHTS'] = function (ctx, box, data, cb) {
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
         if (!content.teamData) {
             console.log('Remove invalid notification');
             return void cb(true);
@@ -505,7 +498,6 @@ define([
         var msg = data.msg;
         var content = msg.content;
 
-        if (msg.author !== content.user.curvePublic) { return void cb(true); }
         if (!content.channel) {
             console.log('Remove invalid notification');
             return void cb(true);
@@ -526,6 +518,129 @@ define([
         cb(true);
     };
 
+    // Make sure "todo migration" notifications are from yourself
+    handlers['MOVE_TODO'] = function (ctx, box, data, cb) {
+        var curve = ctx.store.proxy.curvePublic;
+        if (data.msg.author !== curve) { return void cb(true); }
+        cb();
+    };
+
+    handlers["SAFE_LINKS_DEFAULT"] = function (ctx, box, data, cb) {
+        var curve = ctx.store.proxy.curvePublic;
+        if (data.msg.author !== curve) { return void cb(true); }
+        cb();
+    };
+
+    // Hide duplicates when receiving a SHARE_PAD notification:
+    // Keep only one notification per channel: the stronger and more recent one
+    var comments = {};
+    handlers['COMMENT_REPLY'] = function (ctx, box, data, cb) {
+        var msg = data.msg;
+        var hash = data.hash;
+        var content = msg.content;
+
+        if (Util.find(ctx.store.proxy, ['settings', 'pad', 'disableNotif'])) {
+            return void cb(true);
+        }
+
+        var channel = content.channel;
+        if (!channel) { return void cb(true); }
+
+        var title, href;
+        ctx.Store.getAllStores().some(function (s) {
+            var res = s.manager.findChannel(channel);
+            // Check if the pad is in our drive
+            return res.some(function (obj) {
+                if (!obj.data) { return; }
+                if (href && !obj.data.href) { return; } // We already have the VIEW url, we need EDIT
+                href = obj.data.href || obj.data.roHref;
+                title = obj.data.filename || obj.data.title;
+                if (obj.data.href) { return true; } // Abort only if we have the EDIT url
+            });
+        });
+
+        // If we don't have the edit url, ignore this notification
+        if (!href) { return void cb(true); }
+
+        // Add the title
+        content.href = href;
+        content.title = title;
+
+        // Remove duplicates
+        var old = comments[channel];
+        var toRemove = old ? old.data : undefined;
+
+        // Update the data
+        comments[channel] = {
+            data: {
+                type: box.type,
+                hash: hash
+            }
+        };
+
+        cb(false, toRemove);
+    };
+    removeHandlers['COMMENT_REPLY'] = function (ctx, box, data, hash) {
+        var content = data.content;
+        var channel = content.channel;
+        var old = comments[channel];
+        if (old && old.data && old.data.hash === hash) {
+            delete comments[channel];
+        }
+    };
+
+    // Hide duplicates when receiving a SHARE_PAD notification:
+    // Keep only one notification per channel: the stronger and more recent one
+    var mentions = {};
+    handlers['MENTION'] = function (ctx, box, data, cb) {
+        var msg = data.msg;
+        var hash = data.hash;
+        var content = msg.content;
+
+        if (isMuted(ctx, data)) { return void cb(true); }
+
+        var channel = content.channel;
+        if (!channel) { return void cb(true); }
+
+        var title, href;
+        ctx.Store.getAllStores().some(function (s) {
+            var res = s.manager.findChannel(channel);
+            // Check if the pad is in our drive
+            return res.some(function (obj) {
+                if (!obj.data) { return; }
+                if (href && !obj.data.href) { return; } // We already have the VIEW url, we need EDIT
+                href = obj.data.href || obj.data.roHref;
+                title = obj.data.filename || obj.data.title;
+                if (obj.data.href) { return true; } // Abort only if we have the EDIT url
+            });
+        });
+
+        // Add the title
+        content.href = href;
+        content.title = title;
+
+        // Remove duplicates
+        var old = mentions[channel];
+        var toRemove = old ? old.data : undefined;
+
+        // Update the data
+        mentions[channel] = {
+            data: {
+                type: box.type,
+                hash: hash
+            }
+        };
+
+        cb(false, toRemove);
+    };
+    removeHandlers['MENTION'] = function (ctx, box, data, hash) {
+        var content = data.content;
+        var channel = content.channel;
+        var old = mentions[channel];
+        if (old && old.data && old.data.hash === hash) {
+            delete mentions[channel];
+        }
+    };
 
 
     return {
@@ -541,6 +656,18 @@ define([
                 }
              */
             if (!data.msg) { return void cb(true); }
+
+            // Check if the request is valid (sent by the correct user)
+            var myCurve = Util.find(ctx, ['store', 'proxy', 'curvePublic']);
+            var curve = Util.find(data, ['msg', 'content', 'user', 'curvePublic']) ||
+                        Util.find(data, ['msg', 'content', 'curvePublic']);
+            // Block messages that are not coming from the user described in the message
+            // except if the author is ourselves.
+            if (curve && data.msg.author !== curve && data.msg.author !== myCurve) {
+                console.error('blocked');
+                return void cb(true);
+            }
+
             var type = data.msg.type;
 
             if (handlers[type]) {

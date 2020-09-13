@@ -26,6 +26,17 @@ define([
     // Cache of the avatars outer html (including <media-tag>)
     var avatars = {};
 
+    MT.getMediaTag = function (common, data) {
+        var metadataMgr = common.getMetadataMgr();
+        var privateDat = metadataMgr.getPrivateData();
+        var origin = privateDat.fileHost || privateDat.origin;
+        var src = data.src = data.src.slice(0,1) === '/' ? origin + data.src : data.src;
+        return h('media-tag', {
+            src: src,
+            'data-crypto-key': 'cryptpad:'+data.key
+        });
+    };
+
     MT.getCursorAvatar = function (cursor) {
         var html = '<span class="cp-cursor-avatar">';
         html += (cursor.avatar && avatars[cursor.avatar]) || '';
@@ -245,7 +256,7 @@ define([
             }
 
             // Reset modal
-            $inner.find('media-tag, pre.mermaid').detach();
+            $inner.find('media-tag, pre[data-plugin]').detach();
             $spinner.show();
 
             // Check src and cryptkey
@@ -388,14 +399,16 @@ define([
             e.stopPropagation();
             m.hide();
             var $mt = $menu.data('mediatag');
-            if ($(this).hasClass("cp-app-code-context-saveindrive")) {
+            var $this = $(this);
+            if ($this.hasClass("cp-app-code-context-saveindrive")) {
                 common.importMediaTag($mt);
             }
-            else if ($(this).hasClass("cp-app-code-context-download")) {
-                var media = $mt[0]._mediaObject;
+            else if ($this.hasClass("cp-app-code-context-download")) {
+                var media = Util.find($mt, [0, '_mediaObject']);
+                if (!(media && media._blob)) { return void console.error($mt); }
                 window.saveAs(media._blob.content, media.name);
             }
-            else if ($(this).hasClass("cp-app-code-context-open")) {
+            else if ($this.hasClass("cp-app-code-context-open")) {
                 $mt.trigger('preview');
             }
         });

@@ -9,7 +9,7 @@ define(['/common/application_config_internal.js'], function (AppConfig) {
     // Example: If you want to remove the survey link in the menu:
     // AppConfig.surveyURL = "";
 
-    
+
     AppConfig.availablePadTypes = ['drive', 'teams', 'pad', 'sheet', 'code', 'slide', 'poll', 'kanban', 'whiteboard',
                                 'miniapp', /*'oodoc', 'ooslide',*/ 'file', 'todo', 'contacts', 'taskivista'];
     /* The registered only types are apps restricted to registered users.
@@ -20,6 +20,8 @@ define(['/common/application_config_internal.js'], function (AppConfig) {
      * the app
      */
     AppConfig.registeredOnlyTypes = ['file', 'contacts', 'oodoc', 'ooslide', 'notifications', 'taskivista'];
+    // To inform users of the support ticket panel which languages your admins speak:
+    //AppConfig.supportLanguages = [ 'en', 'fr' ];
 
     return AppConfig;
 });

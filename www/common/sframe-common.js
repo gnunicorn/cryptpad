@@ -103,8 +103,10 @@ define([
     funcs.getBurnAfterReadingWarning = callWithCommon(UIElements.getBurnAfterReadingWarning);
     funcs.createNewPadModal = callWithCommon(UIElements.createNewPadModal);
     funcs.onServerError = callWithCommon(UIElements.onServerError);
+    funcs.addMentions = callWithCommon(UIElements.addMentions);
     funcs.importMediaTagMenu = callWithCommon(MT.importMediaTagMenu);
     funcs.getMediaTagPreview = callWithCommon(MT.getMediaTagPreview);
+    funcs.getMediaTag = callWithCommon(MT.getMediaTag);
 
     // Thumb
     funcs.displayThumbnail = callWithCommon(Thumb.displayThumbnail);
@@ -201,6 +203,33 @@ define([
         };
     };
 
+    funcs.getAuthorId = function () {
+    };
+
+    var authorUid = function(existing) {
+        if (!Array.isArray(existing)) { existing = []; }
+        var n;
+        var i = 0;
+        while (!n || existing.indexOf(n) !== -1 && i++ < 1000) {
+            n = Math.floor(Math.random() * 1000000);
+        }
+        // If we can't find a valid number in 1000 iterations, use 0...
+        if (existing.indexOf(n) !== -1) { n = 0; }
+        return n;
+    };
+    funcs.getAuthorId = function(authors, curve) {
+        var existing = Object.keys(authors || {}).map(Number);
+        if (!funcs.isLoggedIn()) { return authorUid(existing); }
+
+        var uid;
+        existing.some(function(id) {
+            var author = authors[id] || {};
+            if (author.curvePublic !== curve) { return; }
+            uid = Number(id);
+            return true;
+        });
+        return uid || authorUid(existing);
+    };
 
     // Chat
     var padChatChannel;
@@ -220,7 +249,7 @@ define([
             setTimeout(saveChanges);
         }
         padChatChannel = channel;
-        console.error('Chat ID:', channel);
+        console.debug('Chat ID:', channel);
         ctx.sframeChan.query('Q_CHAT_OPENPADCHAT', channel, function (err, obj) {
             if (err || (obj && obj.error)) { console.error(err || (obj && obj.error)); }
         });
@@ -642,8 +671,18 @@ define([
                 UIElements.displayPasswordPrompt(funcs, cfg);
             });
 
+            ctx.sframeChan.on("EV_RESTRICTED_ERROR", function () {
+                UI.errorLoadingScreen(Messages.restrictedError);
+            });
+
             ctx.sframeChan.on("EV_PAD_PASSWORD_ERROR", function () {
                 UI.errorLoadingScreen(Messages.password_error_seed);
+            });
+
+            ctx.sframeChan.on("EV_EXPIRED_ERROR", function () {
+                funcs.onServerError({
+                    type: 'EEXPIRED'
+                });
             });
 
             ctx.sframeChan.on('EV_LOADING_INFO', function (data) {

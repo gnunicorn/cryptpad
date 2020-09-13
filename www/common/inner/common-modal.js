@@ -42,6 +42,7 @@ define([
                         // Access modal and the pad is not stored: we're not an owner
                         // so we don't need the correct href, just the type
                         var h = Hash.createRandomHash(priv.app, priv.password);
+                        data.fakeHref = true;
                         data.href = base + priv.pathname + '#' + h;
                     } else {
                         waitFor.abort();
@@ -109,6 +110,10 @@ define([
                         waitFor.abort();
                         return void cb(e);
                     }
+                    if (c && c.content && c.buttons) {
+                        obj.buttons = c.buttons;
+                        c = c.content;
+                    }
                     var node = (c instanceof $) ? c[0] : c;
                     tabs[i] = {
                         content: c && UI.dialog.customModal(node, {
@@ -119,6 +124,9 @@ define([
                             }
                         }),
                         disabled: !c,
+                        active: obj.active,
+                        onShow: obj.onShow,
+                        onHide: obj.onHide,
                         title: obj.title,
                         icon: obj.icon
                     };

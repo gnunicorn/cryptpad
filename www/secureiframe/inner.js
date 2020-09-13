@@ -45,32 +45,33 @@ define([
         // Share modal
         create['share'] = function (data) {
             var priv = metadataMgr.getPrivateData();
-            var f = (data && data.file) ? UIElements.createFileShareModal
-                                          : UIElements.createShareModal;
-
             var friends = common.getFriends();
 
-            var _modal;
-            var modal = f({
-                origin: priv.origin,
-                pathname: priv.pathname,
-                password: priv.password,
-                isTemplate: priv.isTemplate,
-                hashes: priv.hashes,
-                common: common,
-                title: data.title,
-                friends: friends,
-                onClose: function () {
-                    if (_modal && _modal.close) { _modal.close(); }
-                    hideIframe();
-                },
-                fileData: {
-                    hash: priv.hashes.fileHash,
-                    password: priv.password
-                }
+            require(['/common/inner/share.js'], function (Share) {
+                var f = (data && data.file) ? Share.getFileShareModal
+                                              : Share.getShareModal;
+                f(common, {
+                    origin: priv.origin,
+                    pathname: priv.pathname,
+                    password: priv.password,
+                    isTemplate: priv.isTemplate,
+                    hashes: priv.hashes,
+                    common: common,
+                    title: data.title,
+                    versionHash: data.versionHash,
+                    friends: friends,
+                    onClose: function () {
+                        hideIframe();
+                    },
+                    fileData: {
+                        hash: priv.hashes.fileHash,
+                        password: priv.password
+                    }
+                }, function (e, modal) {
+                    if (e) { console.error(e); }
+                    displayed = modal;
+                });
             });
-            _modal = UI.openCustomModal(modal);
-            displayed = modal;
         };
 
         // Properties modal
@@ -114,6 +115,7 @@ define([
                 var key = Hash.encodeBase64(secret.keys.cryptKey);
                 sframeChan.event("EV_SECURE_ACTION", {
                     type: parsed.type,
+                    href: data.url,
                     src: src,
                     name: data.name,
                     key: key
@@ -177,7 +179,7 @@ define([
             });
 
             // If file, display the upload button
-            if (types.indexOf('file') !== -1 && common.isLoggedIn()) {
+            if (types.indexOf('file') !== -1) {
                 var f = (filters && filters.filter) || {};
                 delete data.accept;
                 if (Array.isArray(f.fileType)) {
@@ -188,7 +190,13 @@ define([
                         return val;
                     });
                 }
-                $filter.append(common.createButton('upload', false, data));
+            }
+
+            var $uploadButton = common.createButton('upload', false, data);
+            $filter.append($uploadButton);
+            if (!common.isLoggedIn()) {
+                $uploadButton.prop('disabled', true)
+                    .prop('title', Messages.upload_mustLogin);
             }
 
             var $container = $(h('span.cp-filepicker-content', [

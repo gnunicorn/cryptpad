@@ -10,7 +10,6 @@ define([
     '/common/common-util.js',
     '/common/common-hash.js',
     '/code/markers.js',
-    '/common/modes.js',
     '/common/visible.js',
     '/common/TypingTests.js',
     '/customize/messages.js',
@@ -57,7 +56,6 @@ define([
     Util,
     Hash,
     Markers,
-    Modes,
     Visible,
     TypingTest,
     Messages,
@@ -77,6 +75,31 @@ define([
         'xml',
     ]);
 
+    var mkThemeButton = function (framework) {
+        var $theme = $(h('button.cp-toolbar-appmenu', [
+            h('i.cptools.cptools-palette'),
+            h('span.cp-button-name', Messages.toolbar_theme)
+        ]));
+        var $content = $(h('div.cp-toolbar-drawer-content', {
+            tabindex: 1
+        })).hide();
+
+        // set up all the necessary events
+        UI.createDrawer($theme, $content);
+
+        framework._.toolbar.$theme = $content;
+        framework._.toolbar.$bottomL.append($theme);
+    };
+
+    var mkCbaButton = function (framework, markers) {
+        var $showAuthorColorsButton = framework._.sfCommon.createButton('', true, {
+            text: Messages.cba_hide,
+            name: 'authormarks',
+            icon: 'fa-paint-brush',
+        }).hide();
+        framework._.toolbar.$theme.append($showAuthorColorsButton);
+        markers.setButton($showAuthorColorsButton);
+    };
     var mkPrintButton = function (framework, $content, $print) {
         var $printButton = framework._.sfCommon.createButton('print', true);
         $printButton.click(function () {
@@ -92,7 +115,7 @@ define([
         var markdownTb = framework._.sfCommon.createMarkdownToolbar(editor);
         $codeMirrorContainer.prepend(markdownTb.toolbar);
 
-        framework._.toolbar.$rightside.append(markdownTb.button);
+        framework._.toolbar.$bottomL.append(markdownTb.button);
 
         var modeChange = function (mode) {
             if (['markdown', 'gfm'].indexOf(mode) !== -1) { return void markdownTb.setState(true); }
@@ -168,7 +191,7 @@ define([
             }
         });
 
-        framework._.toolbar.$rightside.append($previewButton);
+        framework._.toolbar.$bottomM.append($previewButton);
 
         $preview.click(function (e) {
             if (!e.target) { return; }
@@ -272,6 +295,8 @@ define([
             }
         });
 
+        DiffMd.onPluginLoaded(drawPreview);
+
         return {
             forceDraw: forceDrawPreview,
             draw: drawPreview,
@@ -325,7 +350,7 @@ define([
             setButton(!markers.getState());
             UI.alert(content);
         });
-        framework._.toolbar.$drawer.append($cbaButton);
+        framework._.toolbar.$theme.append($cbaButton);
     };
 
     var mkFilePicker = function (framework, editor, evModeChange) {
@@ -356,6 +381,8 @@ define([
         var previewPane = mkPreviewPane(editor, CodeMirror, framework, isPresentMode);
         var markdownTb = mkMarkdownTb(editor, framework);
 
+        mkThemeButton(framework);
+
         var markers = Markers.create({
             common: common,
             framework: framework,
@@ -363,18 +390,15 @@ define([
             devMode: privateData.devMode,
             editor: editor
         });
-
-        var $showAuthorColorsButton = framework._.sfCommon.createButton('', true, {
-            icon: 'fa-paint-brush',
-        }).hide();
-        framework._.toolbar.$rightside.append($showAuthorColorsButton);
-        markers.setButton($showAuthorColorsButton);
+        mkCbaButton(framework, markers);
 
         var $print = $('#cp-app-code-print');
         var $content = $('#cp-app-code-preview-content');
         mkPrintButton(framework, $content, $print);
 
-        mkHelpMenu(framework);
+        if (!privateData.isEmbed) {
+            mkHelpMenu(framework);
+        }
 
         var evModeChange = Util.mkEvent();
         evModeChange.reg(previewPane.modeChange);
