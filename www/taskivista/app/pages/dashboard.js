@@ -1,9 +1,11 @@
 define([
+    '/taskivista/app/components/breadcrumb.js',
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/todo_item.js',
     '/taskivista/app/components/filter_and_sort.js',
     '/taskivista/app/utils.js',
 ], function(
+    Breadcrumb,
     InlineToDoEdit,
     TodoItem,
     FilterAndSort,
@@ -167,56 +169,13 @@ define([
 
         return {
             view: (vn) => {
-                return m(Grid, {
-                    align: "top", justify: "space-between", gutter: "xs", class: "taskivista"
+                return m("", [m(Breadcrumb),
+                    m(Grid, {
+                    align: "top",
                     }, [
-                        
-                        m(Col, {span: 9}, [
-                            m(`.boxed.${Classes.GRID}.${Classes.OUTLINED}.${Classes.ROUNDED}`, {style: {
-                                "margin": "1em 1em 0 0"
-                            }}, [
-                                m(Col, {span: 6}, [m("h1", "Taskivista")]),
-                                // m(Col, {span: 6, style: "text-align: right"}, [
-                                //     m(PopoverMenu, {
-                                //         closeOnContentClick: true,
-                                //         content: [
-                                
-                                //         m(MenuItem, {
-                                //             iconLeft: Icons.EDIT_2,
-                                //             label: 'Edit'
-                                //         }),
-                                
-                                //         m(MenuItem, {
-                                //             iconLeft: Icons.SETTINGS,
-                                //             label: 'Settings'
-                                //         }),
-                                
-                                //         m(MenuDivider),
-
-                                //         m(MenuItem, {
-                                //             iconLeft: Icons.CLOUD_LIGHTNING,
-                                //             label: 'Reset Data',
-                                //             intent: 'negative',
-                                //             onclick: () => {
-                                //                 DATA = utils.generate_default();
-                                //                 if (DATA_UPDATE_CB) { 
-                                //                     DATA_UPDATE_CB()
-                                //                 }
-                                //             }
-                                            
-                                //         }),
-                                //         ],
-                                //         menuAttrs: { size: this.size },
-                                //         trigger:  m(Icon, { name: Icons.SETTINGS })
-                                //     })
-                                // ])
-                            ]),
-                            m("", { style: {
-                                "margin": "1em 1em 0 0",
-                            }}, [
-                                m(ToDos, vn.attrs),
-                            ]),
-                        ]),
+                        m(Col, { span: 9, style: { "padding-right" : "1em"} },
+                             m(ToDos, vn.attrs)
+                        ),
                         m(Col, {span: 3}, [
                             m(Card, {"style": "margin: 1em 0"}, [
                                 m("h2", "Updates"),
@@ -241,7 +200,7 @@ define([
                         ]),
                         m(utils.Toaster, {position: "bottom-end"})
                     ]
-                )
+                )])
             }
         };
     }

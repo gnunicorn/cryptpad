@@ -24,13 +24,10 @@ define([
         view: (vnode) => {
             let style = {};
             let { DATA } = getState();
-            if (DATA && DATA.SETTING && DATA.SETTINGS.background_image) {
-                style = {
-                    "background": `url(${DATA.SETTINGS.background_image}) center center no-repeat`,
-                    "background-size": "cover"
-                }
+            if (DATA && DATA.SETTINGS && DATA.SETTINGS.background_image) {
+                style.background = `url(${DATA.SETTINGS.background_image}) center center no-repeat`;
             }
-            return m("", { style }, vnode.children)
+            return m("", { style }, m(".taskivista", vnode.children))
         }
     }
 

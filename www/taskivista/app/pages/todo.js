@@ -1,10 +1,12 @@
 define([
+    '/taskivista/app/components/breadcrumb.js',
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/activity_item.js',
     '/taskivista/app/components/state_select.js',
     '/taskivista/app/models/todo.js',
     '/taskivista/app/utils.js',
 ], function(
+    Breadcrumb,
     InlineTodoEdit,
     ActivityItem,
     StateSelect,
@@ -70,7 +72,11 @@ define([
                         details.push(m(Tag, {label: tag, size: "sm"})))));
                 }
 
-                return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
+                return m("", [
+                    m(Breadcrumb, m(m.route.Link,
+                        {href: `/todo/${todo.id}`, options: {replace: true}},
+                        todo.title
+                    )),
                     edit_details ? m(".boxed",
                         m(InlineTodoEdit, {
                             todo: $.extend(true, {}, todo),

@@ -1,4 +1,5 @@
 define([
+    '/taskivista/app/components/breadcrumb.js',
     '/taskivista/app/components/edit_meeting_details.js',
     '/taskivista/app/components/inline_todo_edit.js',
     '/taskivista/app/components/todo_item.js',
@@ -8,6 +9,7 @@ define([
     '/taskivista/app/utils.js',
 
 ], function(
+    Breadcrumb,
     EditMeetingDetails,
     InlineToDoEdit,
     ToDoItem,
@@ -36,7 +38,7 @@ define([
     
 
     const ViewNote = {
-        view: (vn) => m("", [
+        view: (vn) => m("", vn.attrs, [
             vn.attrs.note.type == "decision" ? m(Icon, {
                 name: Icons.FLAG, itent: "warning"
             }) : m(Icon, {
@@ -49,7 +51,7 @@ define([
     const EditNote = (vn) => {
         let note = vn.attrs.note;
         return {
-            view: (vn) => m("", {class: Classes.GRID}, [
+            view: (vn) => m("", {class: `${Classes.GRID} ${vn.attrs.class}`}, [
                 m("",
                     note.type == "decision" ? m(Icon, {
                         name: Icons.FLAG, itent: "warning"
@@ -69,19 +71,20 @@ define([
                 ),
                 m(ButtonGroup, {
                     basic: true
-                }, [
-                    m(Button, {
-                        iconLeft: Icons.X,
-                        onclick: vn.attrs.oncancel
-                    }),
-                    m(Button, {
-                        label: "Save",
-                        intent: "primary",
-                        onclick: () => {
-                            vn.attrs.onsubmit(note);
-                        }
-                    })
-                ])
+                    }, [
+                        m(Button, {
+                            iconLeft: Icons.X,
+                            onclick: vn.attrs.oncancel
+                        }),
+                        m(Button, {
+                            label: "Save",
+                            intent: "primary",
+                            onclick: () => {
+                                vn.attrs.onsubmit(note);
+                            }
+                        })
+                    ]
+                )
             ])
         }
     }
@@ -90,6 +93,41 @@ define([
     function ViewMeeting(vinit) {
         let edit_details = false;
         let pending_outcomes = [];
+
+        const AddGroup = {
+            view: (vnode) => m(ButtonGroup, {
+                basic: true,
+            }, [
+                m(Button, {
+                    iconLeft: Icons.CHECK_SQUARE,
+                    label: "ToDo",
+                    onclick: () => {
+                        pending_outcomes.push({
+                            type: "todo", todo: utils.new_todo()
+                        });
+                    }
+                }),
+                m(Button, {
+                    iconLeft: Icons.FLAG,
+                    label: "Decision",
+                    onclick: () => {
+                        pending_outcomes.push({
+                            type: "decision", content: ""
+                        });
+                    }
+                }),
+                m(Button, {
+                    iconLeft: Icons.FILE,
+                    label: "Note",
+                    onclick: () => {
+                        pending_outcomes.push({
+                            type: "note", content: ""
+                        });
+                    }
+                })
+            ])
+        };
+
         return {
             view: (vnode) => {
                 const {
@@ -149,6 +187,7 @@ define([
                             })
                         } else if (a.type == "note" || a.type == "decision") {
                             return m(ViewNote, {
+                                class: "boxed.space-below",
                                 note: DATA.notes[a.note_id],
                             })
                         }
@@ -175,6 +214,7 @@ define([
                         })
                     } else if (o.type == "note" || o.type == "decision") {
                         return m(EditNote, {
+                            class: "boxed.space-below",
                             note: o,
                             onsubmit: (v) => {
                                 let note = NotesModel.create(v);
@@ -191,9 +231,12 @@ define([
                     }
                 })
 
-
-                return m("", { class: "taskivista", style: { "margin-top": "1em" }}, [
-                    edit_details ? m(".boxed",
+                return m("", [
+                    m(Breadcrumb, m(m.route.Link,
+                        {href: `/meeting/${meeting.id}`, options: {replace: true}},
+                        meeting.title
+                    )),
+                    edit_details ? m(".boxed.space-below",
                         m(EditMeetingDetails, {
                             meeting,
                             USERS,
@@ -204,7 +247,7 @@ define([
                             },
                             buttonLabel: "Save"
                         }))
-                    : m(Grid, { class : "boxed" }, [
+                    : m(Grid, { class : "boxed.space-below" }, [
                             m(Col, {span:11}, [
                                 m("h2", meeting.title),
                                 m("", details)
@@ -217,42 +260,13 @@ define([
                             ])
                         ])
                     ,
-                    m(".boxed", { style: "margin-top: 1em"}, [
-                        m("h2", "Outcomes"),
-                        m("", outcomes),
-                        m("", pending),
-                        m(ButtonGroup, {
-                            basic: true,
-                        }, [
-                            m(Button, {
-                                iconLeft: Icons.CHECK_SQUARE,
-                                label: "ToDo",
-                                onclick: () => {
-                                    pending_outcomes.push({
-                                        type: "todo", todo: utils.new_todo()
-                                    });
-                                }
-                            }),
-                            m(Button, {
-                                iconLeft: Icons.FLAG,
-                                label: "Decision",
-                                onclick: () => {
-                                    pending_outcomes.push({
-                                        type: "decision", content: ""
-                                    });
-                                }
-                            }),
-                            m(Button, {
-                                iconLeft: Icons.FILE,
-                                label: "Note",
-                                onclick: () => {
-                                    pending_outcomes.push({
-                                        type: "note", content: ""
-                                    });
-                                }
-                            })
-                        ]),
+                    m(Grid, {class: ".boxed.space-below"} , [
+                        Col(m("h2", "Outcomes")),
+                        Col({span: 3}, m(AddGroup))
                     ]),
+                    m("", outcomes),
+                    m("", pending),
+                    m(".boxed.space-below", m(AddGroup))
                 ]);
             }
         }

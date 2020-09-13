@@ -20,7 +20,7 @@
         min-height: 100%;
         width: 100%;
         resize: horizontal;
-        overflow: hidden;
+        overflow-y: auto;
     }
 
     .cp-app-generic-editor {
@@ -43,15 +43,30 @@
 @import (once) "../vendor/construct-ui.css";
 
 #app {
+    background-size: cover;
+    min-height: 100vh; // fallback
+    min-height: calc(100vh - 96px); // the header on top is 96px total
+    
     .taskivista {
-        margin: 1em auto;
+        padding: 1em 0;
+        margin: 0 auto;
         max-width: 1280px;
         width: 100%;
+
+        .space-below {
+            margin-bottom: 1em;
+        }
 
         .boxed  {
             padding: 1em;
             background: #fff;
             border: solid 1px #c5cdd;
+            &.size-s {
+                padding: 0.5em 1em;
+            }
+            &.size-xs {
+                padding: 0.25em 1em;
+            }
         }
 
         .todo-details { 
@@ -63,13 +78,15 @@
 
         .activity-stream {
             position: relative;
+            margin-top: -0.2em;
+            padding-top: 0.5em;
             &::before {
                 position: absolute;
                 top: 0;
                 bottom: 0;
-                left: 1.2em;
+                left: 1.45em;
                 width: 2px;
-                background: #aaa;
+                background: white;
                 height: 100%;
                 display: block;
                 content: "";
@@ -77,8 +94,10 @@
         }
 
         .activity {
-            margin: 0.5em;
+            margin: 1em 0 01em 3.5em;
             font-size: 0.8em;
+            background: white;
+            padding: 0;
             .user, .when, .msg {
                 padding-right: 0.25em;
             }
@@ -87,7 +106,8 @@
                 background: #aaa;
                 color: white;
                 padding: 0.5em;
-                margin-right: 0.5em;
+                margin-right: 1em;
+                margin-left: -2.75em;
                 &.cui-warning {
                     background-color: #f57c00;
                     color: white;
